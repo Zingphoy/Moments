@@ -1,0 +1,55 @@
+use Moments
+db.createCollection("user")
+db.user.createIndex({"uid":1})
+db.user.insert({"uid":90001,"name":"hxh","passwd":"123"})
+db.user.insert({"uid":90002,"name":"zrz","passwd":"123"})
+db.user.insert({"uid":90003,"name":"zyx","passwd":"123"})
+db.user.insert({"uid":90004,"name":"wtc","passwd":"123"})
+
+db.createCollection("friend")
+db.friend.createIndex({"uid":1})
+db.friend.insert({"uid":90001,"friend_list":[90002,90003]})
+db.friend.insert({"uid":90002,"friend_list":[90001,90003]})
+db.friend.insert({"uid":90003,"friend_list":[90001,90002]})
+db.friend.insert({"uid":90004,"friend_list":[]})
+
+db.createCollection("article_1")
+db.article_1.createIndex({"aid":1})
+db.article_1.insert(
+{"aid":900011604900529,"uid":90001,"post_time":1604900529,"content":"hello world","photo_list":[],"privacy":0}
+)
+
+db.createCollection("article_2")
+db.article_2.createIndex({"aid":1})
+db.article_2.insert(
+{"aid":900011604900530,"uid":90001,"post_time":1604900530,"content":"hello world","photo_list":[],"privacy":0}
+)
+
+db.createCollection("article_3")
+db.article_3.createIndex({"aid":1})
+db.article_3.insert(
+{"aid":900011604900531,"uid":90001,"post_time":1604900531,"content":"hello world","photo_list":[],"privacy":0}
+)
+
+db.createCollection("article_4")
+db.article_4.createIndex({"aid":1})
+db.article_4.insert(
+{"aid":900011604900532,"uid":90001,"post_time":1604900532,"content":"hello world","photo_list":[],"privacy":0}
+)
+
+db.createCollection("album")
+db.album.createIndex({"uid":90001})
+db.album.insert({"uid": 90001,"aid": [900011604900529,900011604900530]})
+
+db.createCollection("comment")
+db.comment.createIndex({"aid":1})
+db.comment.insert(
+{"aid":900011604900529,"comment":[{"cid":1,"uid":90002,"text":"Yeah","from_cid":0}],"like_list":[90002,90003]}
+)
+
+db.createCollection("timeline")
+db.timeline.createIndex({"uid":90001})
+db.timeline.insert({"uid":90001,"aid_list":[900011604900532,900011604900531,900011604900530,900011604900529]})
+
+
+show collections
