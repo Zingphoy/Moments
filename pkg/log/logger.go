@@ -45,7 +45,7 @@ func setLogPrefix(level Level) {
 		logPrefix = fmt.Sprintf("[%s]", levelTag[level])
 	}
 	if DEBUGFLAG {
-		logPrefix = "[UT]" + logPrefix
+		logPrefix = "<UT>" + logPrefix
 	}
 	logger.SetPrefix(logPrefix)
 }

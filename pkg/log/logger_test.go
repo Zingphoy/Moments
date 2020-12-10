@@ -5,7 +5,7 @@ import "testing"
 var PREFIX = "test "
 
 func init() {
-	InitLogger()
+	InitLogger(true)
 }
 
 func TestDebug(t *testing.T) {

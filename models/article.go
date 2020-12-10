@@ -8,15 +8,16 @@ import (
 )
 
 type Article struct {
-	Aid        int64  `json:"aid"`
-	Uid        int32  `json:"uid"`
-	Post_time  int64  `json:"post_time"`
-	Content    string `json:"content"`
-	Photo_list bson.A `json:"photo_list"`
-	Privacy    int32  `json:"privacy"`
+	Aid        int64
+	Uid        int32
+	Post_time  int64
+	Content    string
+	Photo_list bson.A
+	Privacy    int32
+	Is_deleted int32
 }
 
-func makeArticleObj(a bson.M) *Article {
+func makeModelArticleObj(a bson.M) *Article {
 	article := Article{
 		Aid:        a["aid"].(int64),
 		Uid:        a["uid"].(int32),
@@ -24,23 +25,29 @@ func makeArticleObj(a bson.M) *Article {
 		Content:    a["content"].(string),
 		Photo_list: a["photo_list"].(bson.A),
 		Privacy:    a["privacy"].(int32),
+		Is_deleted: 0,
 	}
 	return &article
 }
 
+// todo 有bug，为什么aid会被判断存在
 // IsAidExist check if specific aid is already existed
 func IsAidExist(dbname string, aid int64) bool {
 	db, client, ctx, _ := ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
-			log.Error("error while trying to disconnect database: ", err.Error())
+			log.Error("error while trying to disconnect database:", err.Error())
 		}
 	}()
 
 	collection := db.Collection(dbname)
 	cur, err := collection.Find(ctx, bson.M{"aid": aid})
+	if err != nil {
+		log.Info("error: ", err.Error())
+		return false
+	}
 	defer cur.Close(ctx)
-	if err != nil || cur.Next(ctx) {
+	if !cur.Next(ctx) {
 		return false
 	}
 	return true
@@ -51,7 +58,7 @@ func GetDetail(dbname string, filter map[string]interface{}) (*Article, error) {
 	db, client, ctx, _ := ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
-			log.Error("error while trying to disconnect database: ", err.Error())
+			log.Error("error while trying to disconnect database:", err.Error())
 		}
 	}()
 
@@ -59,17 +66,16 @@ func GetDetail(dbname string, filter map[string]interface{}) (*Article, error) {
 	collection := db.Collection(dbname)
 	err := collection.FindOne(ctx, bson.M(filter)).Decode(&row)
 	if err != nil {
-		log.Error(fmt.Sprintf("Find method in databese \"%s\" error: %s", dbname, err.Error()))
+		log.Info(fmt.Sprintf("Find() method in databese \"%s\" error: %s", dbname, err.Error()))
 		return nil, err
 	}
 
-	log.Info("get data success: ", row)
-	article := makeArticleObj(row)
+	article := makeModelArticleObj(row)
 	return article, nil
 }
 
 // AddArticle add article to database
-func AddArticle(dbname string, data map[string]interface{}) error {
+func AddArticle(dbname string, data map[string]interface{}) (err error) {
 	article := Article{
 		Aid:        data["aid"].(int64),
 		Uid:        data["uid"].(int32),
@@ -81,26 +87,49 @@ func AddArticle(dbname string, data map[string]interface{}) error {
 
 	db, client, ctx, _ := ConnectDatabase()
 	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
-			log.Error("error while trying to disconnect database: ", err.Error())
+		if err = client.Disconnect(ctx); err != nil {
+			log.Error("error while trying to disconnect database:", err.Error())
 		}
 	}()
 
 	collection := db.Collection(dbname)
-	_, err := collection.InsertOne(ctx, article)
+	if _, err = collection.InsertOne(ctx, article); err != nil {
+		log.Error("add article failed")
+	}
 	return err
 }
 
-// DeleteArticle softly delete an aticle with specific filter
-func DeleteArticle(dbname string, filter map[string]interface{}) error {
+// DeleteArticle delete article permanently
+func DeleteArticle(dbname string, filter map[string]interface{}) (err error) {
 	db, client, ctx, _ := ConnectDatabase()
 	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
-			log.Error("error while trying to disconnect database: ", err.Error())
+		if err = client.Disconnect(ctx); err != nil {
+			log.Error("error while trying to disconnect database:", err.Error())
 		}
 	}()
 
 	collection := db.Collection(dbname)
-	_, err := collection.DeleteOne(ctx, filter)
+	if _, err = collection.DeleteOne(ctx, filter); err != nil {
+		log.Error("permanently delete article failed, error:", err.Error())
+	}
+	log.Info("delete article success")
+	return err
+}
+
+// DeleteArticleSoft delete article softly
+func DeleteArticleSoft(dbname string, filter map[string]interface{}) (err error) {
+	db, client, ctx, _ := ConnectDatabase()
+	defer func() {
+		if err = client.Disconnect(ctx); err != nil {
+			log.Error("error while trying to disconnect database:", err.Error())
+		}
+	}()
+
+	collection := db.Collection(dbname)
+	update := bson.D{{"$set", bson.D{{"is_deleted", 1}}}}
+	if _, err = collection.UpdateOne(ctx, filter, update); err != nil {
+		log.Error("softly delete article failed, error:", err.Error())
+	}
+	log.Info("softly delete article success")
 	return err
 }

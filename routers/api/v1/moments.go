@@ -26,7 +26,7 @@ func GetArticleDetail(c *gin.Context) {
 	articleSrv := service.Article{Aid: aid}
 	article, err := articleSrv.GetDetailByAid()
 	if err != nil {
-		log.Error("database error: ", err.Error())
+		log.Error("database error:", err.Error())
 		webapp.MakeJsonRes(http.StatusInternalServerError, hints.INTERNAL_ERROR, err.Error())
 		return
 	}
@@ -65,14 +65,14 @@ func SendArticle(c *gin.Context) {
 	articleSrv := service.Article{}
 	err := c.BindJSON(&articleSrv)
 	if err != nil {
-		log.Error("data parse json error: ", err.Error())
+		log.Error("data parse json error:", err.Error())
 		webapp.MakeJsonRes(http.StatusInternalServerError, hints.INTERNAL_ERROR, err.Error())
 		return
 	}
 
 	err = articleSrv.Add()
 	if err != nil {
-		log.Error("error: ", err.Error())
+		log.Error("error:", err.Error())
 		webapp.MakeJsonRes(http.StatusOK, hints.INTERNAL_ERROR, err.Error())
 		return
 	}
@@ -83,7 +83,7 @@ func SendArticle(c *gin.Context) {
 	}
 	err = albumSrv.Append()
 	if err != nil {
-		log.Error("error: ", err.Error())
+		log.Error("error:", err.Error())
 		webapp.MakeJsonRes(http.StatusOK, hints.INTERNAL_ERROR, err.Error())
 		return
 	}

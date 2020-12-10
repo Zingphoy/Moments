@@ -4,6 +4,7 @@ import (
 	"Moments/models"
 	"Moments/pkg/log"
 	"Moments/pkg/utils"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -25,28 +26,41 @@ func getDatabaseName(aid int64) string {
 	return "article_" + strconv.Itoa(int(aid%4))
 }
 
-// generateAid generate global unique aid，rule as 9 + uid(four digit) + timestamp
+// generateAid generate global unique aid，rule as uid + timestamp
 // also restrict article sending frequency of one user to 1 time per second
 func generateAid(uid int32) (int64, error) {
-	ts := string(time.Now().Unix())
-	tmp := "9" + string(uid) + ts
+	ts := strconv.FormatInt(time.Now().Unix(), 10)
+	tmp := strconv.FormatInt(int64(uid), 10) + ts
 	aid := utils.Str(tmp).MustInt64()
-	dbname := getDatabaseName(aid)
-	yes := models.IsAidExist(dbname, aid)
-	if !yes {
+	yes := models.IsAidExist(getDatabaseName(aid), aid)
+	if yes {
+		log.Info("aid already existed")
 		return 0, errors.New("aid already existed")
 	}
+	log.Info("generated aid:", aid)
 	return aid, nil
 }
 
-func (a *Article) GetDetailByAid() (*models.Article, error) {
+func makeArticleObj(a *models.Article) *Article {
+	article := Article{
+		Aid:        a.Aid,
+		Uid:        a.Uid,
+		Post_time:  a.Post_time,
+		Content:    a.Content,
+		Photo_list: a.Photo_list,
+		Privacy:    a.Privacy,
+	}
+	return &article
+}
+
+func (a *Article) GetDetailByAid() (*Article, error) {
 	dbname := getDatabaseName(a.Aid)
-	article, err := models.GetDetail(dbname, bson.M{"aid": a.Aid})
+	modelArticle, err := models.GetDetail(dbname, bson.M{"aid": a.Aid})
 	if err != nil {
-		log.Error("get article detail by aid failed, aid: ", a.Aid)
+		log.Info("get article detail by aid failed, aid:", a.Aid)
 		return nil, err
 	}
-	return article, nil
+	return makeArticleObj(modelArticle), nil
 }
 
 func (a *Article) RefreshTimeline() error {
@@ -70,13 +84,30 @@ func (a *Article) Add() error {
 	}
 
 	dbname := getDatabaseName(aid)
-	log.Info(dbname, article)
+	log.Info("find database name:", dbname)
 	err = models.AddArticle(dbname, article)
 	return err
 }
 
-func (a *Article) DeleteByAid() error {
+func (a *Article) DeleteByAid(isSoftDelete bool) error {
+	var err error
+	dbname := getDatabaseName(a.Aid)
+	if isSoftDelete {
+		err = models.DeleteArticleSoft(dbname, bson.M{"aid": a.Aid})
+	} else {
+		err = models.DeleteArticle(dbname, bson.M{"aid": a.Aid})
+	}
+
+	if err != nil {
+		log.Error(fmt.Sprintf("delete article failed, aid=%d, error: %s", a.Aid, err.Error()))
+		return err
+	}
 	return nil
+}
+
+// DeleteByAidSoft delete an article by aid softly
+func (a *Article) DeleteByAidSoft() error {
+	return a.DeleteByAid(true)
 }
 
 func (a *Article) Comment() error {
