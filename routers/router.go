@@ -19,11 +19,22 @@ func InitRouter() *gin.Engine {
 
 	apiV1 := r.Group("/v1")
 	{
+		// moments refresh or load more
 		apiV1.GET("/moments/timeline", v1.GetTimeline)
+
+		// get article detail
 		apiV1.GET("/moments/article/detail", v1.GetArticleDetail)
+
+		// post a new article
 		apiV1.POST("/moments/post", v1.SendArticle)
+
+		// delete an article softly
 		apiV1.POST("/moments/delete", v1.DeleteArticle)
+
+		// comment an article
 		apiV1.POST("/moments/comment", v1.CommentArticle)
+
+		// like an article
 		apiV1.POST("/moments/like", v1.LikeArticle)
 	}
 

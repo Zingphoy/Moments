@@ -40,7 +40,11 @@ func AppendAlbum(filter bson.M, aid int64) error {
 		log.Error("aid_list is not slice")
 	}
 	tempList = append(tempList, aid)
-	update := bson.D{{"$set", bson.D{{"aid_list", tempList}}}}
+	update := bson.D{{"$set",
+		bson.D{
+			{"aid_list", tempList},
+		},
+	}}
 	_, err = collection.UpdateOne(ctx, filter, update)
 	return err
 }

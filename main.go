@@ -1,14 +1,12 @@
 package main
 
 import (
-	"Moments/models"
 	"Moments/pkg/log"
 	"Moments/routers"
 )
 
 func init() {
 	log.InitLogger(false)
-	models.SetUp()
 }
 
 func startExpander() {

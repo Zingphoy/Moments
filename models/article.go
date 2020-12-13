@@ -126,7 +126,11 @@ func DeleteArticleSoft(dbname string, filter map[string]interface{}) (err error)
 	}()
 
 	collection := db.Collection(dbname)
-	update := bson.D{{"$set", bson.D{{"is_deleted", 1}}}}
+	update := bson.D{{"$set",
+		bson.D{
+			{"is_deleted", 1},
+		}},
+	}
 	if _, err = collection.UpdateOne(ctx, filter, update); err != nil {
 		log.Error("softly delete article failed, error:", err.Error())
 	}

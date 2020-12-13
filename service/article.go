@@ -53,17 +53,19 @@ func makeArticleObj(a *models.Article) *Article {
 	return &article
 }
 
-func (a *Article) GetDetailByAid() (*Article, error) {
+func (a *Article) GetDetailByAid() error {
 	dbname := getDatabaseName(a.Aid)
 	modelArticle, err := models.GetDetail(dbname, bson.M{"aid": a.Aid})
 	if err != nil {
 		log.Info("get article detail by aid failed, aid:", a.Aid)
-		return nil, err
+		return err
 	}
-	return makeArticleObj(modelArticle), nil
-}
 
-func (a *Article) RefreshTimeline() error {
+	a.Uid = modelArticle.Uid
+	a.Post_time = modelArticle.Post_time
+	a.Content = modelArticle.Content
+	a.Photo_list = modelArticle.Photo_list
+	a.Privacy = modelArticle.Privacy
 	return nil
 }
 

@@ -2,7 +2,6 @@ package service
 
 import (
 	"Moments/pkg/log"
-	"os"
 	"testing"
 	"time"
 
@@ -27,10 +26,14 @@ var (
 	globalTestAid int64
 )
 
-func TestMain(m *testing.M) {
+//func TestMain(m *testing.M) {
+//	log.InitLogger(true)
+//	exitCode := m.Run()
+//	os.Exit(exitCode)
+//}
+
+func init() {
 	log.InitLogger(true)
-	exitCode := m.Run()
-	os.Exit(exitCode)
 }
 
 func TestRefreshTimeline(t *testing.T) {
@@ -50,13 +53,14 @@ func TestArticle_Add(t *testing.T) {
 		return
 	}
 
-	row, err := td.GetDetailByAid()
+	article := Article{Aid: td.Aid}
+	err := article.GetDetailByAid()
 	if err != nil {
 		assert2.Error(t, err, " get article detail failed")
 		return
 	}
 	globalTestAid = td.Aid
-	assert.Equal(t, row.Content, td.Content)
+	assert.Equal(t, article.Content, td.Content)
 }
 
 func TestArticle_DeleteByAid(t *testing.T) {
@@ -69,30 +73,27 @@ func TestArticle_DeleteByAid(t *testing.T) {
 	if err := td.DeleteByAid(true); err != nil {
 		assert2.Error(t, err, "softly delete article failed ")
 	}
-	row, err := td.GetDetailByAid()
+
+	article := Article{Aid: td.Aid}
+	err := article.GetDetailByAid()
 	if err != nil {
 		assert2.Error(t, err, " get article detail failed")
 		return
 	}
-	assert.Equal(t, row.Content, td.Content)
+	assert.Equal(t, article.Content, td.Content)
 
 	// delete pernamently
 	if err := td.DeleteByAid(false); err != nil {
 		assert2.Error(t, err, "permanently delete article failed ")
 		return
 	}
-	_, err = td.GetDetailByAid()
+	err = td.GetDetailByAid() // expect variable err to be not nil
 	assert2.NotNil(t, err)
 }
 
-//func TestGetDetailByAid(t *testing.T) {
-//	td := Article{Aid: 0}
-//	ret, err := td.GetDetailByAid()
-//	if err != nil {
-//		assert2.Error(t, err)
-//	}
-//	assert.Equal(t, ret.Content, "test")
-//}
+func TestArticle_RefreshTimeline(t *testing.T) {
+
+}
 
 // db.article_0.find()
 // db.album.find()
