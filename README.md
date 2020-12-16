@@ -26,3 +26,6 @@ Gin + MongoDB + Docker + RocketMQ
 - swagger生成接口文档
 - 鉴权middlewares，jwt
 - logger的配置化
+- 数据值合法判断
+- 文件结构简化
+- 统一调整日志，日志规范化，抛错规范化

@@ -3,3 +3,4 @@
 build/*
 configs/db*
 test.go
+test_suite.go

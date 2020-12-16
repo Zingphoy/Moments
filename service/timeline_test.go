@@ -50,7 +50,6 @@ func TestTimeline_RefreshTimeline(t *testing.T) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
 	var ret []int64
 	for _, article := range tl.Articles {
 		ret = append(ret, article.Aid)
@@ -58,8 +57,17 @@ func TestTimeline_RefreshTimeline(t *testing.T) {
 	assert.Equal(t, ret, testData.Aid_list[0:len(aidList)-1])
 
 	// loadmore test
-	//tl.RefreshTimeline(uid, aid, "loadmore")
-	//log.Info("loadmore:", tl)
+	tl2 := Timeline{Uid: testData.Uid}
+	aid = aidList[0]
+	err = tl2.RefreshTimeline(uid, aid, "loadmore")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var ret2 []int64
+	for _, article := range tl.Articles {
+		ret2 = append(ret2, article.Aid)
+	}
+	assert.Equal(t, ret2, testData.Aid_list[1:])
 
 	// clear test data
 	err = models.DeleteRowTimeline(bson.M{"uid": testData.Uid})
