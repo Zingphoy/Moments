@@ -28,8 +28,8 @@ func hasPermission() error {
 }
 
 // todo Unit Test
-// GetTimelineRefreshByUid when client refresh timeline, it will fetch 10 newest atticle and check privacy,
-// finally offer the matched artile regardless of amount. Don't deal with the case when less than 1 will be returned.
+// GetTimelineRefreshByUid when client refresh timeline, it will fetch 10 newest article and check privacy,
+// finally offer the matched article regardless of amount. Don't deal with the case when less than 1 will be returned.
 func GetTimelineRefreshByUid(uid int32, aid int64) ([]int64, error) {
 	db, client, ctx, _ := ConnectDatabase()
 	defer func() {
@@ -52,14 +52,14 @@ func GetTimelineRefreshByUid(uid int32, aid int64) ([]int64, error) {
 		if v == aid {
 			break
 		}
+		// todo checkPrivacy here
 		aids = append(aids, v.(int64))
 	}
 	return aids, nil
 }
 
-// todo
-// GetTimelineLoadmoreByUid
-func GetTimelineLoadmoreByUid(uid int32, aid int64) ([]int64, error) {
+// GetTimelineLoadMoreByUid almost the same as GetTimelineRefreshByUid, for the opposite operation
+func GetTimelineLoadMoreByUid(uid int32, aid int64) ([]int64, error) {
 	db, client, ctx, _ := ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
@@ -68,9 +68,28 @@ func GetTimelineLoadmoreByUid(uid int32, aid int64) ([]int64, error) {
 	}()
 
 	collection := db.Collection("timeline")
-	collection.Find(ctx, bson.M{})
+	var row bson.M
+	err := collection.FindOne(ctx, bson.M{"uid": uid}).Decode(&row)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
 
-	return nil, nil
+	var index int
+	for i, v := range (row["aid_list"]).(bson.A) {
+		if v == aid {
+			index = i
+		}
+	}
+
+	var aids []int64
+	count := 10
+	list := (row["aid_list"]).(bson.A)
+	for i := 1; i < len(list) && i < count+1; i++ {
+		// todo checkPrivacy here
+		aids = append(aids, list[index+i].(int64))
+	}
+	return aids, nil
 }
 
 // AppendTimeline
