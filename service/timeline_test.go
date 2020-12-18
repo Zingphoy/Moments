@@ -36,8 +36,7 @@ func TestTimeline_RefreshTimeline(t *testing.T) {
 	}
 
 	// prepare test data
-	err := models.InsertNewTimeline(testData)
-	if err != nil {
+	if err := models.InsertNewTimeline(testData.Uid, testData.Aid_list); err != nil {
 		log.Fatal(err.Error())
 	}
 
@@ -46,7 +45,7 @@ func TestTimeline_RefreshTimeline(t *testing.T) {
 	uid := testData.Uid
 	aidList := testData.Aid_list
 	aid := aidList[len(aidList)-1]
-	err = tl.RefreshTimeline(uid, aid, "refresh")
+	err := tl.RefreshTimeline(uid, aid, "refresh")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -54,7 +53,7 @@ func TestTimeline_RefreshTimeline(t *testing.T) {
 	for _, article := range tl.Articles {
 		ret = append(ret, article.Aid)
 	}
-	assert.Equal(t, ret, testData.Aid_list[0:len(aidList)-1])
+	assert.Equal(t, ret, testData.Aid_list[0:(len(aidList)-1)])
 
 	// loadmore test
 	tl2 := Timeline{Uid: testData.Uid}
@@ -64,14 +63,13 @@ func TestTimeline_RefreshTimeline(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 	var ret2 []int64
-	for _, article := range tl.Articles {
+	for _, article := range tl2.Articles {
 		ret2 = append(ret2, article.Aid)
 	}
 	assert.Equal(t, ret2, testData.Aid_list[1:])
 
 	// clear test data
-	err = models.DeleteRowTimeline(bson.M{"uid": testData.Uid})
-	if err != nil {
+	if err = models.DeleteRowTimeline(bson.M{"uid": testData.Uid}); err != nil {
 		log.Fatal("delete test data failed, please delete Timeline test data manually")
 	}
 }

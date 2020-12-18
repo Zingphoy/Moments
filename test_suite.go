@@ -3,6 +3,7 @@ package main
 import (
 	"Moments/models"
 	"Moments/pkg/log"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -78,14 +79,6 @@ func updateAlbum() {
 
 // write test code here
 func main() {
-	filter := bson.M{"uid": 90001}
-	update := bson.D{{"$set",
-		bson.D{
-			{"privacy", int32(0)},
-		},
-	}}
-	updateData("article_1", filter, update)
-	updateData("article_2", filter, update)
-	updateData("article_3", filter, update)
-
+	a := []int{1, 2, 3, 4, 5, 6, 7}
+	fmt.Println(a[0:2])
 }

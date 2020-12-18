@@ -27,7 +27,6 @@ func hasPermission() error {
 	return nil
 }
 
-// todo Unit Test
 // GetTimelineRefreshByUid when client refresh timeline, it will fetch 10 newest article and check privacy,
 // finally offer the matched article regardless of amount. Don't deal with the case when less than 1 will be returned.
 func GetTimelineRefreshByUid(uid int32, aid int64) ([]int64, error) {
@@ -38,9 +37,9 @@ func GetTimelineRefreshByUid(uid int32, aid int64) ([]int64, error) {
 		}
 	}()
 
-	collection := db.Collection("timeline")
-	//opts := options.Find().SetLimit(10)
 	var row bson.M
+	//opts := options.Find().SetLimit(10)
+	collection := db.Collection("timeline")
 	err := collection.FindOne(ctx, bson.M{"uid": uid}).Decode(&row)
 	if err != nil {
 		log.Error(err.Error())
@@ -49,7 +48,8 @@ func GetTimelineRefreshByUid(uid int32, aid int64) ([]int64, error) {
 
 	var aids []int64
 	for _, v := range (row["aid_list"]).(bson.A) {
-		if v == aid {
+		n := v.(int64)
+		if n <= aid {
 			break
 		}
 		// todo checkPrivacy here
@@ -89,11 +89,12 @@ func GetTimelineLoadMoreByUid(uid int32, aid int64) ([]int64, error) {
 		// todo checkPrivacy here
 		aids = append(aids, list[index+i].(int64))
 	}
+	// todo 边界条件aid会导致bug
 	return aids, nil
 }
 
-// AppendTimeline
-func AppendTimeline(filter interface{}, update interface{}) error {
+// AppendTimeline append timeline to existing user
+func AppendTimeline(uid int32, aid int64) error {
 	db, client, ctx, _ := ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
@@ -101,16 +102,34 @@ func AppendTimeline(filter interface{}, update interface{}) error {
 		}
 	}()
 
+	var row bson.M
 	collection := db.Collection("timeline")
-	if _, err := collection.UpdateOne(ctx, filter, update); err != nil {
-		log.Error("")
+	err := collection.FindOne(ctx, bson.M{"uid": uid}).Decode(&row)
+	if err != nil {
+		log.Error(err.Error())
+		return err
 	}
 
+	aids := []int64{aid}
+	list := row["aid_list"].(bson.A)
+	for _, v := range list {
+		aids = append(aids, v.(int64))
+	}
+	update := bson.D{{"$set",
+		bson.D{
+			{"aid_list", aids},
+		},
+	}}
+	_, err = collection.UpdateOne(ctx, bson.M{"uid": uid}, update)
+	if err != nil {
+		log.Error("append timeline failed,", err.Error())
+		return err
+	}
 	return nil
 }
 
-// InsertNewTimeline
-func InsertNewTimeline(data interface{}) error {
+// InsertNewTimeline insert a new timeline for a new user
+func InsertNewTimeline(uid int32, aids []int64) error {
 	db, client, ctx, _ := ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
@@ -118,9 +137,10 @@ func InsertNewTimeline(data interface{}) error {
 		}
 	}()
 
+	data := bson.M{"uid": uid, "aid_list": aids}
 	collection := db.Collection("timeline")
 	if _, err := collection.InsertOne(ctx, data); err != nil {
-		log.Error("insert timeline data failed:", err.Error())
+		log.Error("insert timeline data failed,", err.Error())
 		return err
 	}
 	return nil

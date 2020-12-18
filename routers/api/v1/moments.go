@@ -6,7 +6,6 @@ import (
 	"Moments/pkg/log"
 	"Moments/pkg/utils"
 	"Moments/service"
-	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -48,17 +47,14 @@ func GetTimeline(c *gin.Context) {
 		return
 	}
 
-	var tlList []service.Timeline
-	tlSrv := service.Timeline{
-
-	}
-	tlList, err = tlSrv.RefreshTimeline(param["uid"].(int32), param["aid"].(int64), param["schema"].(string))
+	log.Info(param)
+	tlSrv := service.Timeline{}
+	err = tlSrv.RefreshTimeline(int32(param["uid"].(float64)), int64(param["aid"].(float64)), param["schema"].(string))
 	if err != nil {
 		log.Error(err.Error())
 		webapp.MakeJsonRes(http.StatusOK, hints.INTERNAL_ERROR, err.Error())
 	}
-	res, _ := json.Marshal(tlList)
-	webapp.MakeJsonRes(http.StatusOK, hints.SUCCESS, res)
+	webapp.MakeJsonRes(http.StatusOK, hints.SUCCESS, tlSrv)
 }
 
 // 发布表入库相关信息，接着相册表完成入库，并将一个扩散朋友圈的消息添加到消息队列

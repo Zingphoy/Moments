@@ -18,7 +18,7 @@ func (tl *Timeline) RefreshTimeline(uid int32, latestAid int64, schema string) e
 	case "refresh":
 		aids, err = models.GetTimelineRefreshByUid(uid, latestAid)
 	case "loadmore":
-		aids, err = models.GetTimelineLoadmoreByUid(uid, latestAid)
+		aids, err = models.GetTimelineLoadMoreByUid(uid, latestAid)
 	}
 	if err != nil {
 		log.Error("get timeline failed")
