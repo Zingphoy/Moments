@@ -8,24 +8,24 @@ import (
 )
 
 type Article struct {
-	Aid        int64
-	Uid        int32
-	Post_time  int64
-	Content    string
-	Photo_list bson.A
-	Privacy    int32
-	Is_deleted int32
+	Aid       int64  `bson:"aid"`
+	Uid       int32  `bson:"uid"`
+	PostTime  int64  `bson:"post_time"`
+	Content   string `bson:"content"`
+	PhotoList bson.A `bson:"photo_list"`
+	Privacy   int32  `bson:"privacy"`
+	IsDeleted int32  `bson:"is_deleted"`
 }
 
 func makeModelArticleObj(a bson.M) *Article {
 	article := Article{
-		Aid:        a["aid"].(int64),
-		Uid:        a["uid"].(int32),
-		Post_time:  a["post_time"].(int64),
-		Content:    a["content"].(string),
-		Photo_list: a["photo_list"].(bson.A),
-		Privacy:    a["privacy"].(int32),
-		Is_deleted: 0,
+		Aid:       a["aid"].(int64),
+		Uid:       a["uid"].(int32),
+		PostTime:  a["post_time"].(int64),
+		Content:   a["content"].(string),
+		PhotoList: a["photo_list"].(bson.A),
+		Privacy:   a["privacy"].(int32),
+		IsDeleted: 0,
 	}
 	return &article
 }
@@ -77,12 +77,12 @@ func GetDetail(dbname string, filter map[string]interface{}) (*Article, error) {
 // AddArticle add article to database
 func AddArticle(dbname string, data map[string]interface{}) (err error) {
 	article := Article{
-		Aid:        data["aid"].(int64),
-		Uid:        data["uid"].(int32),
-		Post_time:  data["post_time"].(int64),
-		Content:    data["content"].(string),
-		Photo_list: data["photo_list"].(bson.A),
-		Privacy:    data["privacy"].(int32),
+		Aid:       data["aid"].(int64),
+		Uid:       data["uid"].(int32),
+		PostTime:  data["post_time"].(int64),
+		Content:   data["content"].(string),
+		PhotoList: data["photo_list"].(bson.A),
+		Privacy:   data["privacy"].(int32),
 	}
 
 	db, client, ctx, _ := ConnectDatabase()

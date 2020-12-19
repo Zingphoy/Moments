@@ -9,19 +9,56 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-type testData struct {
-	dbname  string
-	aid     int64
-	uid     int32
-	content string
+type articleTest struct {
+	Dbname  string
+	Article Article
 }
 
-// test data that stores in collection article_0
-var td = testData{
-	dbname:  "article_0",
-	aid:     0,
-	uid:     0,
-	content: "test",
+func mockTestData4Article() (*articleTest, error) {
+	db, client, ctx, _ := ConnectDatabase()
+	defer func() {
+		if err := client.Disconnect(ctx); err != nil {
+			log.Error("error while trying to disconnect database: ", err.Error())
+		}
+	}()
+
+	testData := articleTest{Dbname: "article_0",
+		Article: Article{
+			Aid:       int64(0),
+			Uid:       int32(90000),
+			Content:   "test",
+			PhotoList: bson.A{},
+		},
+	}
+
+	td, _ := bson.Marshal(testData.Article)
+	data := bson.M{}
+	_ = bson.Unmarshal(td, &data)
+
+	collection := db.Collection("article_0")
+	_, err := collection.InsertOne(ctx, data)
+	if err != nil {
+		log.Fatal(err.Error())
+		return nil, err
+	}
+	return &testData, nil
+}
+
+func clearTestData4Article() error {
+	db, client, ctx, _ := ConnectDatabase()
+	defer func() {
+		if err := client.Disconnect(ctx); err != nil {
+			log.Error("error while trying to disconnect database: ", err.Error())
+		}
+	}()
+
+	collection := db.Collection("article_0")
+	_, err := collection.DeleteOne(ctx, bson.M{"uid": 90000})
+	if err != nil {
+		log.Fatal(err.Error())
+		return err
+	}
+	return nil
 }
 
 func TestMain(m *testing.M) {
@@ -31,17 +68,27 @@ func TestMain(m *testing.M) {
 }
 
 func TestIsAidExist(t *testing.T) {
-	r := IsAidExist(td.dbname, td.aid)
+	data, err := mockTestData4Article()
+	assert.Nil(t, err)
+
+	r := IsAidExist(data.Dbname, data.Article.Aid)
 	assert.True(t, r)
+
+	err = clearTestData4Article()
+	assert.Nil(t, err)
 }
 
 func TestGetDetail(t *testing.T) {
-	expect := td.content
-	ret, err := GetDetail(td.dbname, bson.M{"aid": td.aid})
-	if err != nil {
-		assert.Error(t, err)
-	}
+	data, err := mockTestData4Article()
+	assert.Nil(t, err)
+
+	expect := data.Article.Content
+	ret, err := GetDetail(data.Dbname, bson.M{"aid": data.Article.Aid})
+	assert.Nil(t, err)
 	assert.Equal(t, expect, ret.Content)
+
+	err = clearTestData4Article()
+	assert.Nil(t, err)
 }
 
 func TestAddArticle(t *testing.T) {

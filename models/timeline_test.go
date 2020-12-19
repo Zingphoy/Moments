@@ -12,11 +12,16 @@ import (
  Uid 90000 is a test account
 */
 
+type timelineTest struct {
+	Uid     int32   `bson:"uid"`
+	AidList []int64 `bson:"aid_list"`
+}
+
 func init() {
 	log.InitLogger(true)
 }
 
-func mockTestData() (bson.M, error) {
+func mockTestData4Timeline() (*timelineTest, error) {
 	db, client, ctx, _ := ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
@@ -29,21 +34,25 @@ func mockTestData() (bson.M, error) {
 	for count, i := 0, 91004; count < length; count++ {
 		tempList = append(tempList, int64(i-count))
 	}
-	testData := bson.M{
-		"uid":      int32(90000),
-		"aid_list": tempList,
+	testData := timelineTest{
+		Uid:     int32(90000),
+		AidList: tempList,
 	}
 
+	td, _ := bson.Marshal(testData)
+	data := bson.M{}
+	_ = bson.Unmarshal(td, &data)
+
 	collection := db.Collection("timeline")
-	_, err := collection.InsertOne(ctx, testData)
+	_, err := collection.InsertOne(ctx, data)
 	if err != nil {
 		log.Fatal(err.Error())
 		return nil, err
 	}
-	return testData, nil
+	return &testData, nil
 }
 
-func clearTestData() error {
+func clearTestData4Timeline() error {
 	db, client, ctx, _ := ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
@@ -61,11 +70,11 @@ func clearTestData() error {
 }
 
 func TestModels_GetTimelineRefreshByUid(t *testing.T) {
-	testData, err := mockTestData()
+	testData, err := mockTestData4Timeline()
 	assert2.Nil(t, err)
 
-	uid := testData["uid"].(int32)
-	aidList := testData["aid_list"].([]int64)
+	uid := testData.Uid
+	aidList := testData.AidList
 
 	// normal case
 	start := 3
@@ -78,16 +87,16 @@ func TestModels_GetTimelineRefreshByUid(t *testing.T) {
 	assert2.Nil(t, err)
 	assert2.Empty(t, aids)
 
-	err = clearTestData()
+	err = clearTestData4Timeline()
 	assert2.Nil(t, err)
 }
 
 func TestModels_GetTimelineLoadMoreByUid(t *testing.T) {
-	testData, err := mockTestData()
+	testData, err := mockTestData4Timeline()
 	assert2.Nil(t, err)
 
-	uid := testData["uid"].(int32)
-	aidList := testData["aid_list"].([]int64)
+	uid := testData.Uid
+	aidList := testData.AidList
 
 	// normal case
 	start := 0
@@ -101,6 +110,6 @@ func TestModels_GetTimelineLoadMoreByUid(t *testing.T) {
 	assert2.Nil(t, err)
 	assert2.Empty(t, aids)
 
-	err = clearTestData()
+	err = clearTestData4Timeline()
 	assert2.Nil(t, err)
 }

@@ -13,7 +13,7 @@ import (
 
 type Timeline struct {
 	Uid      int32   `json:"uid"`
-	Aid_list []int64 `json:"aid_list"`
+	AidList []int64 `json:"aid_list"`
 }
 
 const (
