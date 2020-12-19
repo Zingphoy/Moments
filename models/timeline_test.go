@@ -24,13 +24,14 @@ func mockTestData() (bson.M, error) {
 		}
 	}()
 
-	var templist []int64
-	for i := 91004; i >= 91000; i-- {
-		templist = append(templist, int64(i))
+	var tempList []int64
+	var length = 5
+	for count, i := 0, 91004; count < length; count++ {
+		tempList = append(tempList, int64(i-count))
 	}
 	testData := bson.M{
 		"uid":      int32(90000),
-		"aid_list": templist,
+		"aid_list": tempList,
 	}
 
 	collection := db.Collection("timeline")
@@ -63,10 +64,19 @@ func TestModels_GetTimelineRefreshByUid(t *testing.T) {
 	testData, err := mockTestData()
 	assert2.Nil(t, err)
 
+	uid := testData["uid"].(int32)
+	aidList := testData["aid_list"].([]int64)
+
+	// normal case
 	start := 3
-	aids, err := GetTimelineRefreshByUid(testData["uid"].(int32), testData["aid_list"].([]int64)[start])
+	aids, err := GetTimelineRefreshByUid(uid, aidList[start])
 	assert2.Nil(t, err)
-	assert2.Equal(t, aids, testData["aid_list"].([]int64)[0:start])
+	assert2.Equal(t, aids, aidList[0:start])
+
+	// corner aid
+	aids, err = GetTimelineRefreshByUid(uid, aidList[0])
+	assert2.Nil(t, err)
+	assert2.Empty(t, aids)
 
 	err = clearTestData()
 	assert2.Nil(t, err)
@@ -76,10 +86,20 @@ func TestModels_GetTimelineLoadMoreByUid(t *testing.T) {
 	testData, err := mockTestData()
 	assert2.Nil(t, err)
 
+	uid := testData["uid"].(int32)
+	aidList := testData["aid_list"].([]int64)
+
+	// normal case
 	start := 0
-	aids, err := GetTimelineLoadMoreByUid(testData["uid"].(int32), testData["aid_list"].([]int64)[start])
+	aids, err := GetTimelineLoadMoreByUid(uid, aidList[start])
 	assert2.Nil(t, err)
-	assert2.Equal(t, aids, testData["aid_list"].([]int64)[start+1:])
+	assert2.Equal(t, aidList[start+1:], aids)
+
+	// corner case
+	last := len(aidList) - 1
+	aids, err = GetTimelineLoadMoreByUid(uid, aidList[last])
+	assert2.Nil(t, err)
+	assert2.Empty(t, aids)
 
 	err = clearTestData()
 	assert2.Nil(t, err)

@@ -76,7 +76,8 @@ func GetTimelineLoadMoreByUid(uid int32, aid int64) ([]int64, error) {
 	}
 
 	var index int
-	for i, v := range (row["aid_list"]).(bson.A) {
+	list := (row["aid_list"]).(bson.A)
+	for i, v := range list {
 		if v == aid {
 			index = i
 		}
@@ -84,8 +85,7 @@ func GetTimelineLoadMoreByUid(uid int32, aid int64) ([]int64, error) {
 
 	var aids []int64
 	count := 10
-	list := (row["aid_list"]).(bson.A)
-	for i := 1; i < len(list) && i < count+1; i++ {
+	for i := 1; index+i < len(list) && i < count+1; i++ {
 		// todo checkPrivacy here
 		aids = append(aids, list[index+i].(int64))
 	}
