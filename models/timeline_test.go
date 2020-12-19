@@ -4,7 +4,7 @@ import (
 	"Moments/pkg/log"
 	"testing"
 
-	assert2 "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -64,14 +64,14 @@ func clearTestData4Timeline() error {
 	_, err := collection.DeleteOne(ctx, bson.M{"uid": 90000})
 	if err != nil {
 		log.Fatal(err.Error())
-		return nil
+		return err
 	}
-	return err
+	return nil
 }
 
 func TestModels_GetTimelineRefreshByUid(t *testing.T) {
 	testData, err := mockTestData4Timeline()
-	assert2.Nil(t, err)
+	assert.Nil(t, err)
 
 	uid := testData.Uid
 	aidList := testData.AidList
@@ -79,21 +79,21 @@ func TestModels_GetTimelineRefreshByUid(t *testing.T) {
 	// normal case
 	start := 3
 	aids, err := GetTimelineRefreshByUid(uid, aidList[start])
-	assert2.Nil(t, err)
-	assert2.Equal(t, aids, aidList[0:start])
+	assert.Nil(t, err)
+	assert.Equal(t, aids, aidList[0:start])
 
 	// corner aid
 	aids, err = GetTimelineRefreshByUid(uid, aidList[0])
-	assert2.Nil(t, err)
-	assert2.Empty(t, aids)
+	assert.Nil(t, err)
+	assert.Empty(t, aids)
 
 	err = clearTestData4Timeline()
-	assert2.Nil(t, err)
+	assert.Nil(t, err)
 }
 
 func TestModels_GetTimelineLoadMoreByUid(t *testing.T) {
 	testData, err := mockTestData4Timeline()
-	assert2.Nil(t, err)
+	assert.Nil(t, err)
 
 	uid := testData.Uid
 	aidList := testData.AidList
@@ -101,15 +101,15 @@ func TestModels_GetTimelineLoadMoreByUid(t *testing.T) {
 	// normal case
 	start := 0
 	aids, err := GetTimelineLoadMoreByUid(uid, aidList[start])
-	assert2.Nil(t, err)
-	assert2.Equal(t, aidList[start+1:], aids)
+	assert.Nil(t, err)
+	assert.Equal(t, aidList[start+1:], aids)
 
 	// corner case
 	last := len(aidList) - 1
 	aids, err = GetTimelineLoadMoreByUid(uid, aidList[last])
-	assert2.Nil(t, err)
-	assert2.Empty(t, aids)
+	assert.Nil(t, err)
+	assert.Empty(t, aids)
 
 	err = clearTestData4Timeline()
-	assert2.Nil(t, err)
+	assert.Nil(t, err)
 }

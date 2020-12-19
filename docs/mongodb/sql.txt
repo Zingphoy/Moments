@@ -31,7 +31,7 @@ db.article_3.insert(
 {"aid":900011604900531,"uid":90001,"post_time":1604900531,"content":"hello world","photo_list":[],"privacy":0}
 )
 
-db.createCollection("article_4")
+db.createCollection("article_0")
 db.article_4.createIndex({"aid":1})
 db.article_4.insert(
 {"aid":900011604900532,"uid":90001,"post_time":1604900532,"content":"hello world","photo_list":[],"privacy":0}

@@ -5,7 +5,7 @@ import (
 	"Moments/pkg/log"
 	"testing"
 
-	"github.com/magiconair/properties/assert"
+	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

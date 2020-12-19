@@ -27,20 +27,20 @@ func (tl *Timeline) RefreshTimeline(uid int32, latestAid int64, schema string) e
 
 	tl.Articles = []Article{}
 	for _, aid := range aids {
-		articleSrv := Article{Aid: aid}
-		err = articleSrv.GetDetailByAid()
+		article := Article{Aid: aid}
+		err = article.GetDetailByAid()
 		if err != nil {
 			log.Error("get article detail failed")
 			return err
 		}
 
 		tl.Articles = append(tl.Articles, Article{
-			Aid:        aid,
-			Uid:        articleSrv.Uid,
-			Post_time:  articleSrv.Post_time,
-			Content:    articleSrv.Content,
-			Photo_list: articleSrv.Photo_list,
-			Privacy:    articleSrv.Privacy,
+			Aid:       aid,
+			Uid:       article.Uid,
+			PostTime:  article.PostTime,
+			Content:   article.Content,
+			PhotoList: article.PhotoList,
+			Privacy:   article.Privacy,
 		})
 	}
 

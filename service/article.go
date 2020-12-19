@@ -13,12 +13,12 @@ import (
 )
 
 type Article struct {
-	Aid        int64  `json:"aid"`
-	Uid        int32  `json:"uid"`
-	Post_time  int64  `json:"post_time"`
-	Content    string `json:"content"`
-	Photo_list bson.A `json:"photo_list"`
-	Privacy    int32  `json:"privacy"`
+	Aid       int64  `json:"aid"`
+	Uid       int32  `json:"uid"`
+	PostTime  int64  `json:"post_time"`
+	Content   string `json:"content"`
+	PhotoList bson.A `json:"photo_list"`
+	Privacy   int32  `json:"privacy"`
 }
 
 // getDatabaseName articles has been split into 4 collections, find the correct collection
@@ -43,12 +43,12 @@ func generateAid(uid int32) (int64, error) {
 
 func makeArticleObj(a *models.Article) *Article {
 	article := Article{
-		Aid:        a.Aid,
-		Uid:        a.Uid,
-		Post_time:  a.Post_time,
-		Content:    a.Content,
-		Photo_list: a.Photo_list,
-		Privacy:    a.Privacy,
+		Aid:       a.Aid,
+		Uid:       a.Uid,
+		PostTime:  a.PostTime,
+		Content:   a.Content,
+		PhotoList: a.PhotoList,
+		Privacy:   a.Privacy,
 	}
 	return &article
 }
@@ -62,9 +62,9 @@ func (a *Article) GetDetailByAid() error {
 	}
 
 	a.Uid = modelArticle.Uid
-	a.Post_time = modelArticle.Post_time
+	a.PostTime = modelArticle.PostTime
 	a.Content = modelArticle.Content
-	a.Photo_list = modelArticle.Photo_list
+	a.PhotoList = modelArticle.PhotoList
 	a.Privacy = modelArticle.Privacy
 	return nil
 }
@@ -79,9 +79,9 @@ func (a *Article) Add() error {
 	article := map[string]interface{}{
 		"aid":        aid,
 		"uid":        a.Uid,
-		"post_time":  a.Post_time,
+		"post_time":  a.PostTime,
 		"content":    a.Content,
-		"photo_list": a.Photo_list,
+		"photo_list": a.PhotoList,
 		"privacy":    a.Privacy,
 	}
 
