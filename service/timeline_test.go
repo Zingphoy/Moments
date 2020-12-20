@@ -1,7 +1,7 @@
 package service
 
 import (
-	"Moments/models"
+	"Moments/model"
 	"Moments/pkg/log"
 	"testing"
 
@@ -36,7 +36,7 @@ func TestTimeline_RefreshTimeline(t *testing.T) {
 	}
 
 	// prepare test data
-	if err := models.InsertNewTimeline(testData.Uid, testData.Aid_list); err != nil {
+	if err := model.InsertNewTimeline(testData.Uid, testData.Aid_list); err != nil {
 		log.Fatal(err.Error())
 	}
 
@@ -69,7 +69,7 @@ func TestTimeline_RefreshTimeline(t *testing.T) {
 	assert.Equal(t, ret2, testData.Aid_list[1:])
 
 	// clear test data
-	if err = models.DeleteRowTimeline(bson.M{"uid": testData.Uid}); err != nil {
+	if err = model.DeleteRowTimeline(bson.M{"uid": testData.Uid}); err != nil {
 		log.Fatal("delete test data failed, please delete Timeline test data manually")
 	}
 }

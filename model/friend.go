@@ -1,4 +1,4 @@
-package models
+package model
 
 type Friend struct {
 	Id         interface{} `json:"-"`

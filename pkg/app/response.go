@@ -1,7 +1,7 @@
 package app
 
 import (
-	"Moments/pkg/hints"
+	"Moments/pkg/hint"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,7 +19,7 @@ type Respons struct {
 func (C *GinCtx) MakeJsonRes(httpCode int, statusCode int, data interface{}) {
 	C.C.JSON(httpCode, Respons{
 		Code: statusCode,
-		Msg:  hints.GetHintMsg(statusCode),
+		Msg:  hint.GetHintMsg(statusCode),
 		Data: data,
 	})
 }

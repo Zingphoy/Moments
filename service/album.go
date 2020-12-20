@@ -1,7 +1,7 @@
 package service
 
 import (
-	"Moments/models"
+	"Moments/model"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -13,7 +13,7 @@ type Album struct {
 
 // Append append to the article_id (aid) into data row
 func (a *Album) Append() error {
-	err := models.AppendAlbum(bson.M{"uid": a.Uid}, a.Aid)
+	err := model.AppendAlbum(bson.M{"uid": a.Uid}, a.Aid)
 	return err
 }
 

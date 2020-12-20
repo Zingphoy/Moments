@@ -2,8 +2,8 @@ package api
 
 import (
 	"Moments/pkg/app"
-	"Moments/pkg/hints"
-	"Moments/service/util_service"
+	"Moments/pkg/hint"
+	"Moments/service/common"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,19 +18,19 @@ func UploadPicture(c *gin.Context) {
 	var retCode int
 	for i := 0; i < 3; i++ {
 		picBytes := []byte(picB)
-		url, retCode := util_service.UploadPictureToTarget("somewhere", picBytes)
+		url, retCode := common.UploadPictureToTarget("somewhere", picBytes)
 		switch retCode {
-		case hints.SUCCESS:
+		case hint.SUCCESS:
 			c.Redirect(http.StatusFound, "/moments/post")
 			webapp.MakeJsonRes(http.StatusOK, retCode, url)
-		case hints.UPLOAD_PIC_FIALED_NET:
+		case hint.UPLOAD_PIC_FIALED_NET:
 			continue
 		default:
 			break
 		}
 	}
 
-	if retCode != hints.SUCCESS {
+	if retCode != hint.SUCCESS {
 		webapp.MakeJsonRes(http.StatusOK, retCode, nil)
 	}
 }

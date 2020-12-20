@@ -1,7 +1,7 @@
 package service
 
 import (
-	"Moments/models"
+	"Moments/model"
 	"Moments/pkg/log"
 	"testing"
 	"time"
@@ -26,7 +26,7 @@ func mockTestData4ArticleService() *Article {
 }
 
 func clearTestData4ArticleService(aid int64) error {
-	db, client, ctx, _ := models.ConnectDatabase()
+	db, client, ctx, _ := model.ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			log.Error("error while trying to disconnect database: ", err.Error())

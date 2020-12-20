@@ -1,4 +1,4 @@
-package models
+package model
 
 import (
 	"Moments/pkg/log"

@@ -2,7 +2,7 @@ package main
 
 import (
 	"Moments/pkg/log"
-	"Moments/routers"
+	"Moments/router"
 )
 
 func init() {
@@ -14,7 +14,7 @@ func startExpander() {
 }
 
 func main() {
-	r := routers.InitRouter()
+	r := router.InitRouter()
 	err := r.Run(":6666")
 	if err != nil {
 		log.Fatal(err)

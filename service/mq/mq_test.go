@@ -8,6 +8,7 @@ import (
 
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -24,12 +25,20 @@ func TestMain(m *testing.M) {
 
 func TestSendMessage(t *testing.T) {
 	msg := []byte("Hello world for testing")
-	SendMessage(testTopic, msg)
+	err := SendMessage(testTopic, msg)
+	assert.Nil(t, err)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 }
 
 func TestConsumeMessage(t *testing.T) {
-	ConsumeMessage(testTopic, func(ctx context.Context, msg ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
+	err := ConsumeMessage(testTopic, func(ctx context.Context, msg ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 		log.Debug("message: ", msg)
 		return 0, nil
 	})
+	assert.Nil(t, err)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 }

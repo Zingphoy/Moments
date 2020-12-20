@@ -1,4 +1,4 @@
-package hints
+package hint
 
 var CodeHint = map[int]string{
 	// basic

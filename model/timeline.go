@@ -1,4 +1,4 @@
-package models
+package model
 
 /*
  timeline is sorted in order depends on its timing of insertion. When getting timeline from database, it will

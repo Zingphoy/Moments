@@ -1,8 +1,8 @@
-package routers
+package router
 
 import (
-	"Moments/routers/api"
-	v1 "Moments/routers/api/v1"
+	"Moments/router/api"
+	v1 "Moments/router/api/v1"
 
 	"github.com/gin-gonic/gin"
 )

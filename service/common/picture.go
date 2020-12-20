@@ -1,7 +1,7 @@
-package util_service
+package common
 
 import (
-	"Moments/pkg/hints"
+	"Moments/pkg/hint"
 	"strings"
 )
 
@@ -17,14 +17,14 @@ func UploadPictureToTarget(target string, pic []byte) (string, int) {
 
 		}
 
-		code = hints.SUCCESS
+		code = hint.SUCCESS
 	case "somewhere":
 		if url, err = uploadPictureToGithub(pic); err != nil {
 
 		}
-		code = hints.SUCCESS
+		code = hint.SUCCESS
 	default:
-		code = hints.SUCCESS
+		code = hint.SUCCESS
 	}
 	return url, code
 }

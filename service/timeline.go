@@ -1,7 +1,7 @@
 package service
 
 import (
-	"Moments/models"
+	"Moments/model"
 	"Moments/pkg/log"
 )
 
@@ -16,9 +16,9 @@ func (tl *Timeline) RefreshTimeline(uid int32, latestAid int64, schema string) e
 
 	switch schema {
 	case "refresh":
-		aids, err = models.GetTimelineRefreshByUid(uid, latestAid)
+		aids, err = model.GetTimelineRefreshByUid(uid, latestAid)
 	case "loadmore":
-		aids, err = models.GetTimelineLoadMoreByUid(uid, latestAid)
+		aids, err = model.GetTimelineLoadMoreByUid(uid, latestAid)
 	}
 	if err != nil {
 		log.Error("get timeline failed")

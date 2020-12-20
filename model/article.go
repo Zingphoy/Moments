@@ -1,4 +1,4 @@
-package models
+package model
 
 import (
 	"Moments/pkg/log"
@@ -96,6 +96,9 @@ func AddArticle(dbname string, data map[string]interface{}) (err error) {
 	if _, err = collection.InsertOne(ctx, article); err != nil {
 		log.Error("add article failed")
 	}
+
+	// todo 这里引入扩散写：调用mq服务，mq服务将文章写到好友的timeline数据库
+	// 应该调用某个东西，让他来完成具体的expand消息发送，同时还要有地方统一定义消息
 	return err
 }
 

@@ -1,7 +1,7 @@
 package service
 
 import (
-	"Moments/models"
+	"Moments/model"
 	"Moments/pkg/log"
 	"Moments/pkg/utils"
 	"fmt"
@@ -32,7 +32,7 @@ func generateAid(uid int32) (int64, error) {
 	ts := strconv.FormatInt(time.Now().Unix(), 10)
 	tmp := strconv.FormatInt(int64(uid), 10) + ts
 	aid := utils.Str(tmp).MustInt64()
-	yes := models.IsAidExist(getDatabaseName(aid), aid)
+	yes := model.IsAidExist(getDatabaseName(aid), aid)
 	if yes {
 		log.Info("aid already existed")
 		return 0, errors.New("aid already existed")
@@ -41,7 +41,7 @@ func generateAid(uid int32) (int64, error) {
 	return aid, nil
 }
 
-func makeArticleObj(a *models.Article) *Article {
+func makeArticleObj(a *model.Article) *Article {
 	article := Article{
 		Aid:       a.Aid,
 		Uid:       a.Uid,
@@ -55,7 +55,7 @@ func makeArticleObj(a *models.Article) *Article {
 
 func (a *Article) GetDetailByAid() error {
 	dbname := getDatabaseName(a.Aid)
-	modelArticle, err := models.GetDetail(dbname, bson.M{"aid": a.Aid})
+	modelArticle, err := model.GetDetail(dbname, bson.M{"aid": a.Aid})
 	if err != nil {
 		log.Info("get article detail by aid failed, aid:", a.Aid)
 		return err
@@ -87,7 +87,7 @@ func (a *Article) Add() error {
 
 	dbname := getDatabaseName(aid)
 	log.Info("find database name:", dbname)
-	err = models.AddArticle(dbname, article)
+	err = model.AddArticle(dbname, article)
 	return err
 }
 
@@ -95,9 +95,9 @@ func (a *Article) DeleteByAid(isSoftDelete bool) error {
 	var err error
 	dbname := getDatabaseName(a.Aid)
 	if isSoftDelete {
-		err = models.DeleteArticleSoft(dbname, bson.M{"aid": a.Aid})
+		err = model.DeleteArticleSoft(dbname, bson.M{"aid": a.Aid})
 	} else {
-		err = models.DeleteArticle(dbname, bson.M{"aid": a.Aid})
+		err = model.DeleteArticle(dbname, bson.M{"aid": a.Aid})
 	}
 
 	if err != nil {

@@ -1,4 +1,4 @@
-package hints
+package hint
 
 // basic code
 const (
