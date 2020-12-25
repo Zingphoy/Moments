@@ -1,6 +1,6 @@
 .idea/
 .DS_Store
 build/*
-configs/db*
+config/db*
 test.go
 test_suite.go

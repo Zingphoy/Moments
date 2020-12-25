@@ -12,7 +12,7 @@ import (
 )
 
 type Timeline struct {
-	Uid      int32   `json:"uid"`
+	Uid     int32   `json:"uid"`
 	AidList []int64 `json:"aid_list"`
 }
 
@@ -30,24 +30,16 @@ func hasPermission() error {
 // GetTimelineRefreshByUid when client refresh timeline, it will fetch 10 newest article and check privacy,
 // finally offer the matched article regardless of amount. Don't deal with the case when less than 1 will be returned.
 func GetTimelineRefreshByUid(uid int32, aid int64) ([]int64, error) {
-	db, client, ctx, _ := ConnectDatabase()
-	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
-			log.Error("error while trying to disconnect database:", err.Error())
-		}
-	}()
-
-	var row bson.M
-	//opts := options.Find().SetLimit(10)
-	collection := db.Collection("timeline")
-	err := collection.FindOne(ctx, bson.M{"uid": uid}).Decode(&row)
+	filter := map[string]interface{}{"uid": uid}
+	row, err := queryOne("timeline", filter)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
 	}
 
-	var aids []int64
-	for _, v := range (row["aid_list"]).(bson.A) {
+	list := (row["aid_list"]).(bson.A)
+	aids := make([]int64, 0, len(list))
+	for _, v := range list {
 		n := v.(int64)
 		if n <= aid {
 			break
@@ -60,30 +52,23 @@ func GetTimelineRefreshByUid(uid int32, aid int64) ([]int64, error) {
 
 // GetTimelineLoadMoreByUid almost the same as GetTimelineRefreshByUid, for the opposite operation
 func GetTimelineLoadMoreByUid(uid int32, aid int64) ([]int64, error) {
-	db, client, ctx, _ := ConnectDatabase()
-	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
-			log.Error("error while trying to disconnect database:", err.Error())
-		}
-	}()
-
-	collection := db.Collection("timeline")
-	var row bson.M
-	err := collection.FindOne(ctx, bson.M{"uid": uid}).Decode(&row)
+	filter := map[string]interface{}{"uid": uid}
+	data, err := queryOne("timeline", filter)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
 	}
 
 	var index int
-	list := (row["aid_list"]).(bson.A)
+	list := (data["aid_list"]).(bson.A)
 	for i, v := range list {
 		if v == aid {
 			index = i
 		}
 	}
 
-	var aids []int64
+	//var aids []int64
+	aids := make([]int64, 0, len(list))
 	count := 10
 	for i := 1; index+i < len(list) && i < count+1; i++ {
 		// todo checkPrivacy here
@@ -115,12 +100,12 @@ func AppendTimeline(uid int32, aid int64) error {
 	for _, v := range list {
 		aids = append(aids, v.(int64))
 	}
-	update := bson.D{{"$set",
+	data := bson.D{{"$set",
 		bson.D{
 			{"aid_list", aids},
 		},
 	}}
-	_, err = collection.UpdateOne(ctx, bson.M{"uid": uid}, update)
+	_, err = collection.UpdateOne(ctx, bson.M{"uid": uid}, data)
 	if err != nil {
 		log.Error("append timeline failed,", err.Error())
 		return err
@@ -130,39 +115,45 @@ func AppendTimeline(uid int32, aid int64) error {
 
 // InsertNewTimeline insert a new timeline for a new user
 func InsertNewTimeline(uid int32, aids []int64) error {
-	db, client, ctx, _ := ConnectDatabase()
-	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
-			log.Error("error while trying to disconnect database:", err.Error())
-		}
-	}()
-
-	data := bson.M{"uid": uid, "aid_list": aids}
-	collection := db.Collection("timeline")
-	if _, err := collection.InsertOne(ctx, data); err != nil {
+	data := map[string]interface{}{"uid": uid, "aid_list": aids}
+	err := insert("timeline", data)
+	if err != nil {
 		log.Error("insert timeline data failed,", err.Error())
 		return err
 	}
 	return nil
 }
 
-// RemoveTimeline
-func RemoveTimeline() error {
-	db, client, ctx, _ := ConnectDatabase()
-	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
-			log.Error("error while trying to disconnect database:", err.Error())
+// RemoveTimeline remove one article from timeline
+func RemoveTimeline(uid int32, aid int64) error {
+	filter := map[string]interface{}{"uid": uid}
+	row, err := queryOne("timeline", filter)
+	if err != nil {
+		log.Error(err.Error())
+		return err
+	}
+
+	var index int
+	list := row["aid_list"].(bson.A)
+	for i, v := range list {
+		if v == aid {
+			index = i
 		}
-	}()
-
-	collection := db.Collection("timeline")
-	if _, err := collection.UpdateOne(ctx, bson.M{}, bson.D{}); err != nil {
-
+	}
+	tmpA := list[0 : index-1]
+	tmpB := list[index:len(list)]
+	aids := append(tmpA, tmpB...)
+	data := map[string]interface{}{"aid_list": aids}
+	filter = map[string]interface{}{"uid": uid}
+	err = update("timeline", filter, data)
+	if err != nil {
+		log.Error("append timeline failed,", err.Error())
+		return err
 	}
 	return nil
 }
 
-// DeleteRowTimeline
+// DeleteRowTimeline todo 这里没封装好，但只用来测试函数
 func DeleteRowTimeline(filter interface{}) error {
 	db, client, ctx, _ := ConnectDatabase()
 	defer func() {

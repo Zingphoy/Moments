@@ -4,6 +4,7 @@ import (
 	"Moments/model"
 	"Moments/pkg/log"
 	"Moments/pkg/utils"
+	"Moments/service/mq"
 	"fmt"
 	"strconv"
 	"time"
@@ -88,7 +89,23 @@ func (a *Article) Add() error {
 	dbname := getDatabaseName(aid)
 	log.Info("find database name:", dbname)
 	err = model.AddArticle(dbname, article)
-	return err
+	if err != nil {
+		log.Error("add article failed", err.Error())
+		return err
+	}
+
+	// send a message to MQ, going to insert this article into users' friends' timeline
+	msg := mq.Message{
+		MsgType:  mq.EXPAND_TIMELINE_ADD,
+		Desc:     "",
+		NeedSafe: true,
+	}
+	err = msg.ExpandTimeline()
+	if err != nil {
+		log.Error("Expand article into friends' timeline failed,", err.Error())
+		return err
+	}
+	return nil
 }
 
 func (a *Article) DeleteByAid(isSoftDelete bool) error {

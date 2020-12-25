@@ -22,13 +22,6 @@ func init() {
 }
 
 func mockTestData4Timeline() (*timelineTest, error) {
-	db, client, ctx, _ := ConnectDatabase()
-	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
-			log.Error("error while trying to disconnect database: ", err.Error())
-		}
-	}()
-
 	var tempList []int64
 	var length = 5
 	for count, i := 0, 91004; count < length; count++ {
@@ -43,8 +36,7 @@ func mockTestData4Timeline() (*timelineTest, error) {
 	data := bson.M{}
 	_ = bson.Unmarshal(td, &data)
 
-	collection := db.Collection("timeline")
-	_, err := collection.InsertOne(ctx, data)
+	err := insert("timeline", data)
 	if err != nil {
 		log.Fatal(err.Error())
 		return nil, err
@@ -53,15 +45,7 @@ func mockTestData4Timeline() (*timelineTest, error) {
 }
 
 func clearTestData4Timeline() error {
-	db, client, ctx, _ := ConnectDatabase()
-	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
-			log.Error("error while trying to disconnect database: ", err.Error())
-		}
-	}()
-
-	collection := db.Collection("timeline")
-	_, err := collection.DeleteOne(ctx, bson.M{"uid": 90000})
+	err := remove("timeline", map[string]interface{}{"uid": 90000})
 	if err != nil {
 		log.Fatal(err.Error())
 		return err

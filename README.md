@@ -31,3 +31,4 @@ Gin + MongoDB + Docker + RocketMQ
 - 统一调整日志，日志规范化，抛错规范化
 
 - 数据库封装得不好
+- 重构json tag名，是全部用驼峰风格，不要引入下划线

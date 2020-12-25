@@ -15,12 +15,6 @@ type articleTest struct {
 }
 
 func mockTestData4Article() (*articleTest, error) {
-	db, client, ctx, _ := ConnectDatabase()
-	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
-			log.Error("error while trying to disconnect database: ", err.Error())
-		}
-	}()
 
 	testData := articleTest{Dbname: "article_0",
 		Article: Article{
@@ -35,8 +29,7 @@ func mockTestData4Article() (*articleTest, error) {
 	data := bson.M{}
 	_ = bson.Unmarshal(td, &data)
 
-	collection := db.Collection("article_0")
-	_, err := collection.InsertOne(ctx, data)
+	err := insert("article_0", data)
 	if err != nil {
 		log.Fatal(err.Error())
 		return nil, err
@@ -45,15 +38,7 @@ func mockTestData4Article() (*articleTest, error) {
 }
 
 func clearTestData4Article() error {
-	db, client, ctx, _ := ConnectDatabase()
-	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
-			log.Error("error while trying to disconnect database: ", err.Error())
-		}
-	}()
-
-	collection := db.Collection("article_0")
-	_, err := collection.DeleteOne(ctx, bson.M{"uid": 90000})
+	err := remove("article_0", map[string]interface{}{"uid": 90000})
 	if err != nil {
 		log.Fatal(err.Error())
 		return err
