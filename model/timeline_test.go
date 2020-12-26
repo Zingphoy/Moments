@@ -19,6 +19,7 @@ type timelineTest struct {
 
 func init() {
 	log.InitLogger(true)
+	log.RedirectLogStd()
 }
 
 func mockTestData4Timeline() (*timelineTest, error) {

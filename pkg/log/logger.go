@@ -15,6 +15,8 @@ var (
 	logPrefix      string
 	levelTag       = []string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
 	DEBUGFLAG      = false
+	LOG2FILE       *os.File
+	LOG2STDERR     = os.Stderr
 )
 
 type Level int
@@ -30,11 +32,26 @@ const (
 // TODO: InitLogger 配置化，如log路径、log
 func InitLogger(debug bool) {
 	DEBUGFLAG = debug
+	LOG2FILE = setLogFile()
+	logger = log.New(LOG2FILE, DEFAULTPREFIX, log.Ldate|log.Ltime)
+}
+
+func setLogFile() *os.File {
 	logFile, err := os.OpenFile("/Users/bytedance//Developer/Moments/build/moments.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		panic(err)
 	}
-	logger = log.New(logFile, DEFAULTPREFIX, log.Ldate|log.Ltime)
+	return logFile
+}
+
+// RedirectLogStd redirect log stream writes to specific log file
+func RedirectLogFile() {
+	logger.SetOutput(LOG2FILE)
+}
+
+// RedirectLogStd redirect log stream writes to os.Stderr for local test
+func RedirectLogStd() {
+	logger.SetOutput(LOG2STDERR)
 }
 
 func setLogPrefix(level Level) {

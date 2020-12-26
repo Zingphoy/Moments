@@ -75,10 +75,10 @@ func (a *Article) Add() error {
 	if err != nil {
 		return err
 	}
-	a.Aid = aid
 
+	a.Aid = aid
 	article := map[string]interface{}{
-		"aid":        aid,
+		"aid":        a.Aid,
 		"uid":        a.Uid,
 		"post_time":  a.PostTime,
 		"content":    a.Content,
@@ -97,6 +97,8 @@ func (a *Article) Add() error {
 	// send a message to MQ, going to insert this article into users' friends' timeline
 	msg := mq.Message{
 		MsgType:  mq.EXPAND_TIMELINE_ADD,
+		Aid:      aid,
+		Uid:      a.Uid,
 		Desc:     "",
 		NeedSafe: true,
 	}

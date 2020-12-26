@@ -2,7 +2,6 @@ package model
 
 import (
 	"Moments/pkg/log"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,8 +13,12 @@ type articleTest struct {
 	Article Article
 }
 
-func mockTestData4Article() (*articleTest, error) {
+func init() {
+	log.InitLogger(true)
+	log.RedirectLogStd()
+}
 
+func mockTestData4Article() (*articleTest, error) {
 	testData := articleTest{Dbname: "article_0",
 		Article: Article{
 			Aid:       int64(0),
@@ -44,12 +47,6 @@ func clearTestData4Article() error {
 		return err
 	}
 	return nil
-}
-
-func TestMain(m *testing.M) {
-	log.InitLogger(true)
-	exitCode := m.Run()
-	os.Exit(exitCode)
 }
 
 func TestIsAidExist(t *testing.T) {

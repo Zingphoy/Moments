@@ -4,7 +4,6 @@ import (
 	"Moments/model"
 	"Moments/pkg/log"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
@@ -17,7 +16,7 @@ func init() {
 func mockTestData4ArticleService() *Article {
 	testArticle := Article{
 		Uid:       90000,
-		PostTime:  time.Now().Unix(),
+		PostTime:  int64(1608961415),
 		Content:   "Unit Test From Function TestArticle_Add(), should be deleted after test",
 		PhotoList: bson.A{"https://www.baidu.com"},
 		Privacy:   999, // this is the sign of test

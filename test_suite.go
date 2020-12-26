@@ -1,9 +1,9 @@
 package main
 
 import (
-	"Moments/models"
+	"Moments/model"
 	"Moments/pkg/log"
-	"fmt"
+	"strconv"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -15,10 +15,11 @@ import (
 
 func init() {
 	log.InitLogger(true)
+	log.RedirectLogStd()
 }
 
 func insertData(dbname string, data interface{}) {
-	db, client, ctx, _ := models.ConnectDatabase()
+	db, client, ctx, _ := model.ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			log.Error("error while trying to disconnect database: ", err.Error())
@@ -33,7 +34,7 @@ func insertData(dbname string, data interface{}) {
 }
 
 func deleteData(dbname string, data interface{}) {
-	db, client, ctx, _ := models.ConnectDatabase()
+	db, client, ctx, _ := model.ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			log.Error("error while trying to disconnect database: ", err.Error())
@@ -48,7 +49,7 @@ func deleteData(dbname string, data interface{}) {
 }
 
 func updateData(dbname string, filter interface{}, update interface{}) {
-	db, client, ctx, _ := models.ConnectDatabase()
+	db, client, ctx, _ := model.ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			log.Error("error while trying to disconnect database: ", err.Error())
@@ -77,8 +78,37 @@ func updateAlbum() {
 	updateData("album", filter, update)
 }
 
-// write test code here
+// when running article_test.go, it may create some test articles and we need to clear them
+func clearTestArticle() {
+	db, client, ctx, _ := model.ConnectDatabase()
+	defer func() {
+		if err := client.Disconnect(ctx); err != nil {
+			log.Error("error while trying to disconnect database: ", err.Error())
+		}
+	}()
+
+	for i := 0; i < 4; i++ {
+		dbname := "article_" + strconv.Itoa(i)
+		collection := db.Collection(dbname)
+		_, err := collection.DeleteOne(ctx, bson.M{"privacy": 999})
+		if err != nil {
+			log.Error("delete test article failed")
+		}
+	}
+}
+
+func print(done chan int) {
+	log.Info("print sth")
+	log.Error("print sth")
+	if done != nil {
+		done <- 0
+	}
+}
+
+// write test code heret
 func main() {
-	a := []int{1, 2, 3, 4, 5, 6, 7}
-	fmt.Println(a[0:2])
+	log.RedirectLogStd()
+	done := make(chan int)
+	go print(done)
+	<-done
 }
