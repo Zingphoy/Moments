@@ -3,6 +3,7 @@ package service
 import (
 	"Moments/model"
 	"Moments/pkg/log"
+	"Moments/service/mq"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,6 +12,8 @@ import (
 
 func init() {
 	log.InitLogger(true)
+	mq.InitMQ()
+	//mq.StopMQ()
 }
 
 func mockTestData4ArticleService() *Article {
