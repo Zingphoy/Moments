@@ -5,12 +5,14 @@ import (
 	"Moments/pkg/log"
 )
 
-type Timeline struct {
-	Uid      int32     `json:"uid"`
-	Articles []Article `json:"articles"`
-}
+//type Timeline struct {
+//	Uid      int32     `json:"uid"`
+//	Articles []Article `json:"articles"`
+//}
 
-func (tl *Timeline) RefreshTimeline(uid int32, latestAid int64, schema string) error {
+type TimelineService model.Timeline
+
+func (tl *TimelineService) RefreshTimeline(uid int32, latestAid int64, schema string) error {
 	var err error
 	var aids []int64
 
@@ -25,16 +27,17 @@ func (tl *Timeline) RefreshTimeline(uid int32, latestAid int64, schema string) e
 		return err
 	}
 
-	tl.Articles = []Article{}
+	tl.Articles = []model.Article{}
 	for _, aid := range aids {
-		article := Article{Aid: aid}
+		article := new(ArticleService)
+		article.Aid = aid
 		err = article.GetDetailByAid()
 		if err != nil {
 			log.Error("get article detail failed")
 			return err
 		}
 
-		tl.Articles = append(tl.Articles, Article{
+		tl.Articles = append(tl.Articles, model.Article{
 			Aid:       aid,
 			Uid:       article.Uid,
 			PostTime:  article.PostTime,

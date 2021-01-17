@@ -4,7 +4,6 @@ import (
 	"Moments/model"
 	"Moments/pkg/log"
 	"Moments/pkg/utils"
-	"Moments/service/mq"
 	"fmt"
 	"strconv"
 	"time"
@@ -13,14 +12,20 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-type Article struct {
-	Aid       int64  `json:"aid"`
-	Uid       int32  `json:"uid"`
-	PostTime  int64  `json:"post_time"`
-	Content   string `json:"content"`
-	PhotoList bson.A `json:"photo_list"`
-	Privacy   int32  `json:"privacy"`
-}
+//type Article struct {
+//	Aid       int64  `json:"aid"`
+//	Uid       int32  `json:"uid"`
+//	PostTime  int64  `json:"post_time"`
+//	Content   string `json:"content"`
+//	PhotoList bson.A `json:"photo_list"`
+//	Privacy   int32  `json:"privacy"`
+//}
+
+//type ArticleService struct {
+//	model.Article
+//}
+
+type ArticleService model.Article
 
 // getDatabaseName articles has been split into 4 collections, find the correct collection
 func getDatabaseName(aid int64) string {
@@ -42,19 +47,7 @@ func generateAid(uid int32) (int64, error) {
 	return aid, nil
 }
 
-func makeArticleObj(a *model.Article) *Article {
-	article := Article{
-		Aid:       a.Aid,
-		Uid:       a.Uid,
-		PostTime:  a.PostTime,
-		Content:   a.Content,
-		PhotoList: a.PhotoList,
-		Privacy:   a.Privacy,
-	}
-	return &article
-}
-
-func (a *Article) GetDetailByAid() error {
+func (a *ArticleService) GetDetailByAid() error {
 	dbname := getDatabaseName(a.Aid)
 	modelArticle, err := model.GetDetail(dbname, bson.M{"aid": a.Aid})
 	if err != nil {
@@ -70,7 +63,7 @@ func (a *Article) GetDetailByAid() error {
 	return nil
 }
 
-func (a *Article) Add() error {
+func (a *ArticleService) Add() error {
 	aid, err := generateAid(a.Uid)
 	if err != nil {
 		return err
@@ -94,29 +87,39 @@ func (a *Article) Add() error {
 		return err
 	}
 
-	// send a message to MQ, going to insert this article into users' friends' timeline
-	msg := mq.Message{
-		MsgType:  mq.EXPAND_TIMELINE_ADD,
-		Aid:      aid,
-		Uid:      a.Uid,
-		Desc:     "",
-		NeedSafe: true,
+	album := Album{
+		Uid:     a.Uid,
+		AidList: bson.A{a.Aid},
 	}
-	err = msg.ExpandTimeline()
+	err = album.Append()
 	if err != nil {
-		log.Error("Expand article into friends' timeline failed,", err.Error())
 		return err
 	}
+
+	// send a message to MQ, going to insert this article into users' friends' timeline
+	//msg := mq.Message{
+	//	MsgType:  mq.EXPAND_TIMELINE_ADD,
+	//	Aid:      aid,
+	//	Uid:      a.Uid,
+	//	Desc:     "",
+	//	NeedSafe: true,
+	//}
+	//err = msg.ExpandTimeline()
+	//if err != nil {
+	//	log.Error("Expand article into friends' timeline failed,", err.Error())
+	//	return err
+	//}
 	return nil
 }
 
-func (a *Article) DeleteByAid(isSoftDelete bool) error {
+func (a *ArticleService) DeleteByAid(isSoftDelete bool) error {
 	var err error
 	dbname := getDatabaseName(a.Aid)
 	if isSoftDelete {
 		err = model.DeleteArticleSoft(dbname, bson.M{"aid": a.Aid})
 	} else {
 		err = model.DeleteArticle(dbname, bson.M{"aid": a.Aid})
+		err = model.DeleteAlbum(map[string]interface{}{"aid": a.Aid, "uid": a.Uid}) // todo
 	}
 
 	if err != nil {
@@ -127,14 +130,14 @@ func (a *Article) DeleteByAid(isSoftDelete bool) error {
 }
 
 // DeleteByAidSoft delete an article by aid softly
-func (a *Article) DeleteByAidSoft() error {
+func (a *ArticleService) DeleteByAidSoft() error {
 	return a.DeleteByAid(true)
 }
 
-func (a *Article) Comment() error {
+func (a *ArticleService) Comment() error {
 	return nil
 }
 
-func (a *Article) Like() error {
+func (a *ArticleService) Like() error {
 	return nil
 }

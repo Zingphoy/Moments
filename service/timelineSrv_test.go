@@ -41,7 +41,7 @@ func TestTimeline_RefreshTimeline(t *testing.T) {
 	}
 
 	// refresh test
-	tl := Timeline{Uid: testData.Uid}
+	tl := TimelineService{Uid: testData.Uid}
 	uid := testData.Uid
 	aidList := testData.Aid_list
 	aid := aidList[len(aidList)-1]
@@ -56,7 +56,7 @@ func TestTimeline_RefreshTimeline(t *testing.T) {
 	assert.Equal(t, ret, testData.Aid_list[0:(len(aidList)-1)])
 
 	// loadmore test
-	tl2 := Timeline{Uid: testData.Uid}
+	tl2 := TimelineService{Uid: testData.Uid}
 	aid = aidList[0]
 	err = tl2.RefreshTimeline(uid, aid, "loadmore")
 	if err != nil {
