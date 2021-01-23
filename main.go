@@ -23,7 +23,7 @@ func startExpander() {
 
 }
 
-func main2() {
+func main() {
 	server := &http.Server{
 		Addr:         port,
 		Handler:      router.InitRouter(),

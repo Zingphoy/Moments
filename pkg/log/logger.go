@@ -37,7 +37,7 @@ func InitLogger(debug bool) {
 }
 
 func setLogFile() *os.File {
-	logFile, err := os.OpenFile("/Users/bytedance//Developer/Moments/build/moments.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	logFile, err := os.OpenFile("./build/moments.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		panic(err)
 	}
