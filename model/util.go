@@ -115,3 +115,40 @@ func remove(dbname string, filter map[string]interface{}) error {
 	}
 	return nil
 }
+
+/* ---------------------------------- Pubilc ---------------------------------- */
+
+func QueryOne(dbname string, filter map[string]interface{}) (map[string]interface{}, error) {
+	db, client, ctx, _ := ConnectDatabase()
+	defer func() {
+		if err := client.Disconnect(ctx); err != nil {
+			log.Error("error while trying to disconnect database:", err.Error())
+		}
+	}()
+
+	var row bson.M
+	collection := db.Collection(dbname)
+	err := collection.FindOne(ctx, filter).Decode(&row)
+	if err != nil {
+		log.Error("query data failed", err.Error())
+		return nil, err
+	}
+	return row, nil
+}
+
+func Insert(dbname string, data interface{}) error {
+	db, client, ctx, _ := ConnectDatabase()
+	defer func() {
+		if err := client.Disconnect(ctx); err != nil {
+			log.Error("error while trying to disconnect database:", err.Error())
+		}
+	}()
+
+	collection := db.Collection(dbname)
+	_, err := collection.InsertOne(ctx, data)
+	if err != nil {
+		log.Error("insert data failed,", err.Error())
+		return err
+	}
+	return nil
+}

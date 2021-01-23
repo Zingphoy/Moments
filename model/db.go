@@ -12,8 +12,8 @@ import (
 
 var (
 	TIMEOUT  time.Duration = 8
-	URI                    = "mongodb://localhost:8080" // uri := "mongodb+srv://<username>:<password>@<cluster-address>/test?w=majority"
-	DATABASE               = "Moments"
+	//URI                    = "mongodb://localhost:8080" // uri := "mongodb+srv://<username>:<password>@<cluster-address>/test?w=majority"
+	//DATABASE               = "Moments"
 	db       *mongo.Database
 	op       *options.ClientOptions
 )

@@ -1,7 +1,6 @@
 package mq
 
 import (
-	"Moments/model"
 	"Moments/pkg/log"
 	"encoding/json"
 	"fmt"
@@ -69,7 +68,9 @@ func (l *TransactionListener) ExecuteLocalTransaction(msg *primitive.Message) pr
 	// local transaction, first append sender's timeline, then append to friends' timeline asynchronously
 	switch body.MsgType {
 	case EXPAND_TIMELINE_ADD:
-		err = model.AppendTimeline(body.Uid, body.Aid)
+		// todo 暂时注释
+		//err = model.AppendTimeline(body.Uid, body.Aid)
+		break
 	case EXPAND_TIMELINE_DELETE:
 		// todo not implement yet
 		break

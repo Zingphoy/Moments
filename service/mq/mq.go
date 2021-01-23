@@ -32,19 +32,25 @@ type consumerFunc func(context.Context, ...*primitive.MessageExt) (consumer.Cons
 // TODO: 配置化
 // InitMQ initialize Producer and Consumer of MQ
 func InitMQ() {
-	p, _ = mq.NewTransactionProducer(
+	var err error
+	p, err = mq.NewTransactionProducer(
 		NewTransactionListener(),
 		producer.WithNsResovler(primitive.NewPassthroughResolver([]string{HOST_AND_PORT})),
 		producer.WithRetry(3),
 	)
-	err := p.Start()
 	if err != nil {
 		log.Fatal(err)
-		panic(err)
+		return
+	}
+
+	err = p.Start()
+	if err != nil {
+		log.Fatal(err)
+		return
 	}
 	log.Info("MQ producer initialize success")
 
-	c, _ = mq.NewPushConsumer(
+	c, err = mq.NewPushConsumer(
 		consumer.WithGroupName(GROUP_NAME),
 		consumer.WithNsResovler(primitive.NewPassthroughResolver([]string{HOST_AND_PORT})),
 		consumer.WithTrace(&primitive.TraceConfig{
@@ -53,6 +59,10 @@ func InitMQ() {
 		),
 		consumer.WithConsumeFromWhere(consumer.ConsumeFromLastOffset),
 	)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 	log.Info("MQ consumer initialize success")
 }
 

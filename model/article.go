@@ -3,103 +3,135 @@ package model
 import (
 	"Moments/pkg/log"
 	"fmt"
-
-	"go.mongodb.org/mongo-driver/bson"
+	"strconv"
 )
 
+type ArticleModel interface {
+	GetArticleDatabase() string
+	IsArticleExist() bool
+	GetArticleDetailByAid() error
+	AddArticle() error
+	//UpdateArticle(filter Map, data Map) error
+	DeleteArticleByAid() error
+	DeleteArticleSoftByAid() error
+}
+
+// article data structure
 type Article struct {
-	Aid       int64  `bson:"aid"`
-	Uid       int32  `bson:"uid"`
-	PostTime  int64  `bson:"post_time"`
-	Content   string `bson:"content"`
-	PhotoList bson.A `bson:"photo_list"`
-	Privacy   int32  `bson:"privacy"`
-	IsDeleted int32  `bson:"is_deleted"`
+	// basic fields of Article, it should not be edited
+	Aid       int64    `bson:"aid" json:"aid"`
+	Uid       int32    `bson:"uid" json:"uid"`
+	PostTime  int64    `bson:"post_time" json:"post_time"`
+	Content   string   `bson:"content" json:"content"`
+	PhotoList []string `bson:"photo_list" json:"photo_list"`
+
+	// extra fields
+	Privacy   int32 `bson:"privacy" json:"privacy"`
+	IsDeleted int32 `bson:"is_deleted" json:"is_deleted"`
 }
 
-func makeModelArticleObj(a bson.M) *Article {
-	article := Article{
-		Aid:       a["aid"].(int64),
-		Uid:       a["uid"].(int32),
-		PostTime:  a["post_time"].(int64),
-		Content:   a["content"].(string),
-		PhotoList: a["photo_list"].(bson.A),
-		Privacy:   a["privacy"].(int32),
-		IsDeleted: 0,
-	}
-	return &article
+// GetArticleDatabase articles has been split into 4 collections, find the correct collection
+func (a *Article) GetArticleDatabase() string {
+	dbname := "article_" + strconv.Itoa(int(a.Aid%4))
+	return dbname
 }
 
-// IsAidExist check if specific aid is already existed
-func IsAidExist(dbname string, aid int64) bool {
-	filter := map[string]interface{}{"aid": aid}
-	rows, err := query(dbname, filter)
+// IsArticleExist check if specific aid is already existed
+func (a *Article) IsArticleExist() bool {
+	client := NewDatabaseClient()
+	err := client.Connect()
 	if err != nil {
-		log.Info("error: ", err.Error())
+		// shall not return false, otherwise aid would be redundant
+		return true
+	}
+	defer client.Disconnect()
+
+	rows, err := client.Query(a.GetArticleDatabase(), Map{"aid": a.Aid})
+	if err != nil {
+		log.Info("aid not exists")
 		return false
 	}
 	if len(rows) <= 0 {
+		log.Info("aid not exists")
 		return false
 	}
 	return true
 }
 
-// GetDetail get detail of an article with specific filter
-func GetDetail(dbname string, filter map[string]interface{}) (*Article, error) {
-	db, client, ctx, _ := ConnectDatabase()
-	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
-			log.Error("error while trying to disconnect database:", err.Error())
-		}
-	}()
+// GetArticleDetailByAid get detail of an Article with specific filter
+func (a *Article) GetArticleDetailByAid() error {
+	client := NewDatabaseClient()
+	err := client.Connect()
+	if err != nil {
+		return err
+	}
+	defer client.Disconnect()
 
-	var row bson.M
-	collection := db.Collection(dbname)
-	err := collection.FindOne(ctx, bson.M(filter)).Decode(&row)
+	dbname := a.GetArticleDatabase()
+	rows, err := client.Query(dbname, Map{"aid": a.Aid})
 	if err != nil {
 		log.Info(fmt.Sprintf("Find() method in databese \"%s\" error: %s", dbname, err.Error()))
-		return nil, err
+		return err
 	}
-
-	article := makeModelArticleObj(row)
-	return article, nil
+	row := rows[0]
+	a.Aid = row["aid"].(int64)
+	a.Uid = row["uid"].(int32)
+	a.PostTime = row["post_time"].(int64)
+	a.Content = row["content"].(string)
+	a.PhotoList = row["photo_list"].([]string)
+	a.Privacy = row["privacy"].(int32)
+	a.IsDeleted = 0
+	return nil
 }
 
-// AddArticle add article to database, and expand this article into friends' timeline
-func AddArticle(dbname string, data map[string]interface{}) error {
-	article := Article{
-		Aid:       data["aid"].(int64),
-		Uid:       data["uid"].(int32),
-		PostTime:  data["post_time"].(int64),
-		Content:   data["content"].(string),
-		PhotoList: data["photo_list"].(bson.A),
-		Privacy:   data["privacy"].(int32),
-	}
-
-	err := insert(dbname, article)
+// AddArticle add Article to database, and expand this Article into friends' timeline
+func (a *Article) AddArticle() error {
+	client := NewDatabaseClient()
+	err := client.Connect()
 	if err != nil {
-		log.Error("add article failed")
+		return err
+	}
+	defer client.Disconnect()
+
+	err = client.Insert(a.GetArticleDatabase(), []interface{}{a})
+	if err != nil {
+		log.Error("add Article failed,", err.Error())
 	}
 	return err
 }
 
-// DeleteArticle delete article permanently
-func DeleteArticle(dbname string, filter map[string]interface{}) error {
-	err := remove(dbname, filter)
+// DeleteArticleByUidAid delete Article permanently
+func (a *Article) DeleteArticleByUidAid() error {
+	client := NewDatabaseClient()
+	err := client.Connect()
 	if err != nil {
-		log.Error("permanently delete article failed, error:", err.Error())
+		return err
 	}
-	log.Info("delete article success")
+	defer client.Disconnect()
+
+	err = client.Remove(a.GetArticleDatabase(), Map{"aid": a.Aid, "uid": a.Uid})
+	if err != nil {
+		log.Error("permanently delete Article failed, error:", err.Error())
+	}
+	log.Info("delete Article success")
 	return err
 }
 
-// DeleteArticleSoft delete article softly
-func DeleteArticleSoft(dbname string, filter map[string]interface{}) error {
-	data := map[string]interface{}{"is_deleted": 1}
-	err := update(dbname, filter, data)
+// DeleteArticleSoftByUidAid delete Article softly
+func (a *Article) DeleteArticleSoftByUidAid() error {
+	client := NewDatabaseClient()
+	err := client.Connect()
 	if err != nil {
-		log.Error("softly delete article failed, error:", err.Error())
+		return err
 	}
-	log.Info("softly delete article success")
+	defer client.Disconnect()
+
+	filter := Map{"aid": a.Aid, "uid": a.Uid}
+	data := Map{"is_deleted": 1}
+	err = client.Update(a.GetArticleDatabase(), filter, data)
+	if err != nil {
+		log.Error("softly delete Article failed, error:", err.Error())
+	}
+	log.Info("softly delete Article success")
 	return err
 }

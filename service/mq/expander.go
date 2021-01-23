@@ -70,17 +70,26 @@ func callback(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.Cons
 		}
 
 		// todo 获取好友列表，然后遍历调用 AppendTimeline
-		switch m.MsgType {
-		case 1:
-			// 从friend中查库出来，所以需要friend先提供接口
-			err = model.AppendTimeline(uid, aid)
-		case 2:
-			err = model.RemoveTimeline(uid, aid)
-		}
+
+		friendList, err := model.GetFriend(uid)
 		if err != nil {
-			log.Error("expand timeline failed ")
+			log.Error("get frined list failed,", err.Error())
 			return consumer.ConsumeRetryLater, err
 		}
+		for _, fuid := range friendList {
+			switch m.MsgType {
+			case 1:
+				log.Info(fuid)
+				//err = model.AppendTimeline(fuid, aid)
+			case 2:
+				//err = model.RemoveTimeline(fuid, aid)
+			}
+			if err != nil {
+				log.Error("expand timeline failed ")
+				return consumer.ConsumeRetryLater, err
+			}
+		}
+
 	}
 	return consumer.ConsumeSuccess, nil
 }

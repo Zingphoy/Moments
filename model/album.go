@@ -8,29 +8,36 @@ import (
 
 type Album struct {
 	Uid     int32  `json:"uid"`
-	AidList bson.A `json:"aid_list"` // different
+	AidList bson.A `json:"aid_list"` // this will use as one single value if needed
 }
 
-func makeAlbumObj() {
-
+// NewAlbum add new album for a new user
+func NewAlbum(uid int32) error {
+	err := insert("album", bson.M{"uid": uid, "aid_list": bson.A{}})
+	return err
 }
 
-func AddAlbum() error {
-	return nil
+// AppendAlbum append aid to user's specific Article album
+func AppendAlbum(filter map[string]interface{}, aid int64) error {
+	aids, err := queryOne("album", filter)
+	if err != nil {
+		return err
+	}
+
+	// todo 追加aid有问题
+	tempList, ok := aids["aid_list"].(bson.A)
+	if !ok {
+		log.Error("aid_list is not slice")
+	}
+	tempList = append(tempList, aid)
+	data := map[string]interface{}{"aid_list": tempList}
+	err = update("album", filter, data)
+	return err
 }
 
-// AppendAlbum append aid to user's specific article album
-func AppendAlbum(filter bson.M, aid int64) error {
-	db, client, ctx, _ := ConnectDatabase()
-	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
-			log.Error("error while trying to disconnect database: ", err.Error())
-		}
-	}()
-
-	var aids bson.M
-	collection := db.Collection("album")
-	err := collection.FindOne(ctx, filter).Decode(&aids)
+// RemoveAlbum delete Article from album permanently
+func RemoveAlbum(filter map[string]interface{}, aid int64) error {
+	aids, err := queryOne("album", filter)
 	if err != nil {
 		return err
 	}
@@ -39,12 +46,25 @@ func AppendAlbum(filter bson.M, aid int64) error {
 	if !ok {
 		log.Error("aid_list is not slice")
 	}
-	tempList = append(tempList, aid)
-	update := bson.D{{"$set",
-		bson.D{
-			{"aid_list", tempList},
-		},
-	}}
-	_, err = collection.UpdateOne(ctx, filter, update)
+
+	var list bson.A
+	for _, v := range tempList {
+		if v == aid {
+			continue
+		}
+		list = append(list, v)
+	}
+
+	data := map[string]interface{}{"aid_list": tempList}
+	err = update("album", bson.M{"aid": filter["aid"]}, data)
 	return err
+}
+
+func DetailAlbum(filter map[string]interface{}) (map[string]interface{}, error) {
+	album, err := queryOne("album", filter)
+	if err != nil {
+		log.Error("get album detail failed,", err.Error())
+		return nil, err
+	}
+	return album, err
 }

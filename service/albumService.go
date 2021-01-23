@@ -8,10 +8,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-type Album struct {
-	Uid     int32  `json:"uid"`
-	AidList bson.A `json:"aid_list"` // this will use as one single value if needed
-}
+//type Album struct {
+//	Uid     int32  `json:"uid"`
+//	AidList bson.A `json:"aid_list"` // this will use as one single value if needed
+//}
+
+type Album model.Album
 
 func (a *Album) Add() error {
 	err := model.NewAlbum(a.Uid)
@@ -42,7 +44,7 @@ func (a *Album) Append() error {
 
 // Delete delete an article from album
 func (a *Album) Delete() error {
-	err := model.DeleteAlbum(map[string]interface{}{"uid": a.Uid, "aid": a.AidList[0].(int64)})
+	err := model.RemoveAlbum(map[string]interface{}{"uid": a.Uid}, a.AidList[0].(int64))
 	return err
 }
 

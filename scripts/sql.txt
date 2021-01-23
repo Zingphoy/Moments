@@ -1,0 +1,22 @@
+use moments
+db.createCollection("user")
+db.user.createIndex({"uid":1})
+
+db.createCollection("article_1")
+db.article_1.createIndex({"aid":1})
+db.createCollection("article_2")
+db.article_2.createIndex({"aid":1})
+db.createCollection("article_3")
+db.article_3.createIndex({"aid":1})
+db.createCollection("article_4")
+db.article_4.createIndex({"aid":1})
+
+db.createCollection("album")
+db.album.createIndex({"uid":1})
+
+db.createCollection("comment")
+db.comment.createIndex({"aid":1})
+
+db.createCollection("timeline")
+db.timeline.createIndex({"uid":1})
+

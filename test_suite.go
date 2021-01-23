@@ -97,18 +97,41 @@ func clearTestArticle() {
 	}
 }
 
-func print(done chan int) {
-	log.Info("print sth")
-	log.Error("print sth")
-	if done != nil {
-		done <- 0
-	}
+type BasicArticle struct {
+	Aid       int64  `bson:"aid"`
+	Uid       int32  `bson:"uid"`
+	PostTime  int64  `bson:"post_time"`
+	Content   string `bson:"content"`
+	PhotoList bson.A `bson:"photo_list"`
+}
+
+type Article struct {
+	BasicArticle
+	Privacy   int32 `bson:"privacy"`
+	IsDeleted int32 `bson:"is_deleted"`
 }
 
 // write test code heret
-func main() {
-	log.RedirectLogStd()
-	done := make(chan int)
-	go print(done)
-	<-done
-}
+//func main() {
+//	data := map[string]interface{}{
+//		"aid":        int64(0),
+//		"uid":        int32(0),
+//		"post_time":  int64(0),
+//		"content":    "test",
+//		"photo_list": bson.A{},
+//		"privacy":    int32(999),
+//	}
+//
+//	article := &article{
+//		BasicArticleModel: BasicArticleModel{
+//			Aid:       data["aid"].(int64),
+//			Uid:       data["uid"].(int32),
+//			PostTime:  data["post_time"].(int64),
+//			Content:   data["content"].(string),
+//			PhotoList: data["photo_list"].(bson.A),
+//		},
+//		Privacy: data["privacy"].(int32),
+//	}
+//
+//	insertData("article_0", &article)
+//}
