@@ -10,8 +10,15 @@ var CodeHint = map[int]string{
 	AID_ALREADY_EXIST: "please ensure that sending article not too fast",
 
 	// uid
-	UID_NOT_EXIST: "user does not exist",
+	USER_NOT_FOUND: "user does not exist",
 
+	// database
+	EMPTY_RESULT:              "query result is empty",
+	CONTEXT_DEADLINE_EXCEEDED: "database connection timeout",
+	OTHERS:                    "database unknown error",
+
+	// validate
+	JSON_PARSE_ERROR: "json parse error",
 	// tools
 	UPLOAD_PIC_FIALED_NET:          "upload picture failed, network error",
 	UOLOAD_PIC_FIALED_AUTH:         "upload picture failed, authority denied",

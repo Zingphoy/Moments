@@ -28,10 +28,10 @@ func InitRouter() http.Handler {
 		apiV1.GET("/moments/article/detail", v1.GetArticleDetail)
 
 		// post a new article
-		//apiV1.POST("/moments/post", v1.SendArticle)
+		apiV1.POST("/moments/post", v1.SendArticle)
 
 		// delete an article softly
-		//apiV1.POST("/moments/delete", v1.DeleteArticle)
+		apiV1.POST("/moments/delete", v1.DeleteArticle)
 
 		// comment an article
 		apiV1.POST("/moments/comment", v1.CommentArticle)

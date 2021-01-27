@@ -4,29 +4,39 @@ import (
 	"Moments/model"
 	"Moments/pkg/log"
 	"fmt"
+
 	"github.com/pkg/errors"
 )
 
 type ArticleHandler struct {
-	model.Article
+	*model.Article
 }
 
 func (handler *ArticleHandler) DetailArticle() error {
-	err := handler.Article.GetArticleDetailByAid()
+	am := model.NewArticleModel(model.ArticleModelImpl{})
+	detail, err := am.GetArticleDetailByAid(handler.Aid)
 	if err != nil {
 		log.Warn("get article detail by aid failed, aid:", handler.Aid)
 		return err
 	}
+	handler.Aid = detail.Aid
+	handler.Uid = detail.Uid
+	handler.Content = detail.Content
+	handler.PostTime = detail.PostTime
+	handler.PhotoList = detail.PhotoList
+	handler.Privacy = detail.Privacy
+	handler.IsDeleted = detail.IsDeleted
 	return nil
 }
 
-func (handler *ArticleHandler) AddArticle(data Map) error {
-	aid, err := generateAid(data["uid"].(int32))
+func (handler *ArticleHandler) AddArticle() error {
+	am := model.NewArticleModel(model.ArticleModelImpl{})
+	aid, err := am.GenerateAid(handler.Uid)
 	if err != nil {
 		return err
 	}
 	handler.Aid = aid
-	err = handler.Article.AddArticle()
+	err = am.AddArticle(handler.Article)
 	if err != nil {
 		return errors.Wrap(err, "add article failed")
 	}
@@ -56,9 +66,9 @@ func (handler *ArticleHandler) AddArticle(data Map) error {
 	return nil
 }
 
-// DeleteArticle delete an article by aid softly
+// DeleteArticle delete an article by aid softly, a wrapper function of Delete
 func (handler *ArticleHandler) DeleteArticle() error {
-	err := handler.Article.DeleteArticleSoftByUidAid()
+	err := handler.Delete(true)
 	if err != nil {
 		log.Warn("delete article failed")
 		return errors.Wrap(err, "delete article failed")
@@ -66,17 +76,19 @@ func (handler *ArticleHandler) DeleteArticle() error {
 	return nil
 }
 
-func (handler *ArticleHandler) Delete(uid int32, aid int64, isSoftDelete bool) error {
+func (handler *ArticleHandler) Delete(isSoftDelete bool) error {
 	var err error
+	uid, aid := handler.Uid, handler.Aid
+	am := model.NewArticleModel(model.ArticleModelImpl{})
 	if isSoftDelete {
-		err = handler.DeleteArticleSoftByUidAid()
+		err = am.DeleteArticleSoftByUidAid(uid, aid)
 	} else {
-		err = handler.DeleteArticleByUidAid()
+		err = am.DeleteArticleByUidAid(uid, aid)
 		if err != nil {
 			log.Error("delete article failed")
 		}
 
-		err = model.RemoveAlbum(Map{"uid": uid}, aid)
+		err = model.RemoveAlbum(map[string]interface{}{"uid": uid}, aid)
 		if err != nil {
 			log.Error("remove album failed")
 		}
