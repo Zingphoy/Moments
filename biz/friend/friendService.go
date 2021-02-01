@@ -1,8 +1,10 @@
-package service
+package album
 
-import "Moments/model"
+import (
+	"Moments/biz/friend"
+)
 
-type FriendSrv model.Friend
+type FriendSrv friend.Friend
 
 func Add(uid int32, fuid int32) {
 

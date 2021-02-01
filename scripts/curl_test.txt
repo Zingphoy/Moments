@@ -1,0 +1,12 @@
+- Article
+  - GetArticleDetail: curl -X GET -H 'Content-Type: application/json' 'http://127.0.0.1:6666/v1/moments/article/detail?aid=900011604900532'
+  - AddArticle: curl -X POST -H 'Content-Type: application/json' 'http://127.0.0.1:6666/v1/moments/post' -d '{"uid":90001,"content":"curl test"}'
+  - [注意aid和uid需要修改] DeleteArticle: curl -X POST -H 'Content-Type: application/json' 'http://127.0.0.1:6666/v1/moments/delete' -d '{"aid":900011611495779,"uid":90001}'
+
+
+
+
+
+
+- gomock
+  - mockgen --destination=./mocks/mock_aticle.go -package=mocks Moments/model ArticleModel

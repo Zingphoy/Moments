@@ -8,35 +8,38 @@ import (
 	"github.com/pkg/errors"
 )
 
+/*
+ todo Model层不再做过度抽象，直接一层interface加一个实现的结构体，service层的结构体接受model层结构体为参数，在具体函数中条用model层结构体即可
+*/
+
 type ArticleHandler struct {
-	*model.Article
+	Data *model.Article
+	Impl model.ArticleModel
 }
 
 func (handler *ArticleHandler) DetailArticle() error {
-	am := model.NewArticleModel(model.ArticleModelImpl{})
-	detail, err := am.GetArticleDetailByAid(handler.Aid)
+	detail, err := handler.Impl.GetArticleDetailByAid(handler.Data.Aid)
 	if err != nil {
-		log.Warn("get article detail by aid failed, aid:", handler.Aid)
+		log.Warn("get article detail by aid failed, aid:", handler.Data.Aid)
 		return err
 	}
-	handler.Aid = detail.Aid
-	handler.Uid = detail.Uid
-	handler.Content = detail.Content
-	handler.PostTime = detail.PostTime
-	handler.PhotoList = detail.PhotoList
-	handler.Privacy = detail.Privacy
-	handler.IsDeleted = detail.IsDeleted
+	handler.Data.Aid = detail.Aid
+	handler.Data.Uid = detail.Uid
+	handler.Data.Content = detail.Content
+	handler.Data.PostTime = detail.PostTime
+	handler.Data.PhotoList = detail.PhotoList
+	handler.Data.Privacy = detail.Privacy
+	handler.Data.IsDeleted = detail.IsDeleted
 	return nil
 }
 
 func (handler *ArticleHandler) AddArticle() error {
-	am := model.NewArticleModel(model.ArticleModelImpl{})
-	aid, err := am.GenerateAid(handler.Uid)
+	aid, err := handler.Impl.GenerateAid(handler.Data.Uid)
 	if err != nil {
 		return err
 	}
-	handler.Aid = aid
-	err = am.AddArticle(handler.Article)
+	handler.Data.Aid = aid
+	err = handler.Impl.AddArticle(handler.Data)
 	if err != nil {
 		return errors.Wrap(err, "add article failed")
 	}
@@ -78,12 +81,11 @@ func (handler *ArticleHandler) DeleteArticle() error {
 
 func (handler *ArticleHandler) Delete(isSoftDelete bool) error {
 	var err error
-	uid, aid := handler.Uid, handler.Aid
-	am := model.NewArticleModel(model.ArticleModelImpl{})
+	uid, aid := handler.Data.Uid, handler.Data.Aid
 	if isSoftDelete {
-		err = am.DeleteArticleSoftByUidAid(uid, aid)
+		err = handler.Impl.DeleteArticleSoftByUidAid(uid, aid)
 	} else {
-		err = am.DeleteArticleByUidAid(uid, aid)
+		err = handler.Impl.DeleteArticleByUidAid(uid, aid)
 		if err != nil {
 			log.Error("delete article failed")
 		}

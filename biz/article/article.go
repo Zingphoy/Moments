@@ -36,49 +36,6 @@ type ArticleModel interface {
 	DeleteArticleSoftByUidAid(uid int32, aid int64) error
 }
 
-type articleModel struct {
-	ami ArticleModelImpl
-}
-
-func NewArticleModel(ami ArticleModelImpl) ArticleModel {
-	return &articleModel{
-		ami: ami,
-	}
-}
-
-func (a *articleModel) GenerateAid(uid int32) (int64, error) {
-	return a.ami.GenerateAid(uid)
-}
-
-func (a *articleModel) GetArticleDatabase(aid int64) string {
-	return a.ami.GetArticleDatabase(aid)
-}
-
-func (a *articleModel) IsArticleExist(aid int64) bool {
-	return a.ami.IsArticleExist(aid)
-}
-
-func (a *articleModel) GetArticleDetailByAid(aid int64) (*Article, error) {
-	return a.ami.GetArticleDetailByAid(aid)
-}
-
-func (a *articleModel) AddArticle(art *Article) error {
-	return a.ami.AddArticle(art)
-}
-
-func (a *articleModel) DeleteArticleByUidAid(uid int32, aid int64) error {
-	return a.ami.DeleteArticleByUidAid(uid, aid)
-}
-
-func (a *articleModel) DeleteArticleSoftByUidAid(uid int32, aid int64) error {
-	return a.ami.DeleteArticleByUidAid(uid, aid)
-}
-
-func (a *articleModel) Update() error {
-	return a.ami.Update()
-
-}
-
 /********** Real Implement **********/
 
 type ArticleModelImpl struct {

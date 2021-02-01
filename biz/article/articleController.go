@@ -40,7 +40,7 @@ func GetArticleDetail(c *gin.Context) {
 	}
 
 	articleData.Aid = aid
-	aHandler := service.ArticleHandler{Article: &articleData}
+	aHandler := service.ArticleHandler{Data: &articleData, Impl: &model.ArticleModelImpl{}}
 	err = aHandler.DetailArticle()
 	if err != nil {
 		log.Error("database error:", err.Error())
@@ -48,7 +48,6 @@ func GetArticleDetail(c *gin.Context) {
 		return
 	}
 	webapp.MakeJsonRes(http.StatusOK, hint.SUCCESS, articleData)
-
 }
 
 // 发布表入库相关信息，接着相册表完成入库，并将一个扩散朋友圈的消息添加到消息队列
@@ -63,7 +62,7 @@ func SendArticle(c *gin.Context) {
 		return
 	}
 
-	aHandler := service.ArticleHandler{Article: &articleData}
+	aHandler := service.ArticleHandler{Data: &articleData, Impl: &model.ArticleModelImpl{}}
 	err = aHandler.AddArticle()
 	if err != nil {
 		log.Error("error:", err.Error())
@@ -97,7 +96,7 @@ func DeleteArticle(c *gin.Context) {
 		return
 	}
 
-	aHandler := service.ArticleHandler{Article: &articleData}
+	aHandler := service.ArticleHandler{Data: &articleData, Impl: &model.ArticleModelImpl{}}
 	err = aHandler.DeleteArticle()
 	if err != nil {
 		log.Error("model delete error")

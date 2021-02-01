@@ -7,18 +7,18 @@ import (
 )
 
 type Album struct {
-	Uid     int32  `json:"uid"`
-	AidList bson.A `json:"aid_list"` // this will use as one single value if needed
+	Uid     int32  `bson:"uid" json:"uid"`
+	AidList bson.A `bson:"aid_list" json:"aid_list"` // this will use as one single value if needed
 }
 
 // NewAlbum add new album for a new user
-func NewAlbum(uid int32) error {
+func (a *Album) NewAlbum(uid int32) error {
 	err := insert("album", bson.M{"uid": uid, "aid_list": bson.A{}})
 	return err
 }
 
 // AppendAlbum append aid to user's specific Article album
-func AppendAlbum(filter map[string]interface{}, aid int64) error {
+func (a *Album) AppendAlbum(filter map[string]interface{}, aid int64) error {
 	aids, err := queryOne("album", filter)
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func AppendAlbum(filter map[string]interface{}, aid int64) error {
 }
 
 // RemoveAlbum delete Article from album permanently
-func RemoveAlbum(filter map[string]interface{}, aid int64) error {
+func (a *Album) RemoveAlbum(filter map[string]interface{}, aid int64) error {
 	aids, err := queryOne("album", filter)
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func RemoveAlbum(filter map[string]interface{}, aid int64) error {
 	return err
 }
 
-func DetailAlbum(filter map[string]interface{}) (map[string]interface{}, error) {
+func (a *Album) DetailAlbum(filter map[string]interface{}) (map[string]interface{}, error) {
 	album, err := queryOne("album", filter)
 	if err != nil {
 		log.Error("get album detail failed,", err.Error())
