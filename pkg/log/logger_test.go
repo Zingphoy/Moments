@@ -8,22 +8,26 @@ func init() {
 	InitLogger(true)
 }
 
+func TestTrace(t *testing.T) {
+	Trace(nil, PREFIX+"trace")
+}
+
 func TestDebug(t *testing.T) {
-	Debug(PREFIX + "debug")
+	Debug(nil, PREFIX+"debug")
 }
 
 func TestInfo(t *testing.T) {
-	Info(PREFIX + "info")
+	Info(nil, PREFIX+"info")
 }
 
 func TestWarn(t *testing.T) {
-	Info(PREFIX + "warn")
+	Info(nil, PREFIX+"warn")
 }
 
 func TestError(t *testing.T) {
-	Info(PREFIX + "error")
+	Info(nil, PREFIX+"error")
 }
 
 func TestFatal(t *testing.T) {
-	Info(PREFIX + "fatal")
+	Info(nil, PREFIX+"fatal")
 }

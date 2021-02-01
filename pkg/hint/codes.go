@@ -45,6 +45,9 @@ const (
 	UID_ALREADY_EXIST = 1201
 	USER_NOT_FOUND    = 1202
 
+	// album
+	ALBUM_EMPTY = 1301
+
 	// database
 	CONNECT_FAILED            = 2001
 	CONTEXT_DEADLINE_EXCEEDED = 2002

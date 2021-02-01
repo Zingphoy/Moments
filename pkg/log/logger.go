@@ -1,11 +1,14 @@
 package log
 
 import (
+	"Moments/middleware"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
+
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -22,7 +25,8 @@ var (
 type Level int
 
 const (
-	DEBUG Level = iota
+	TRACE Level = iota
+	DEBUG
 	INFO
 	WARN
 	ERROR
@@ -37,7 +41,7 @@ func InitLogger(debug bool) {
 }
 
 func setLogFile() *os.File {
-	logFile, err := os.OpenFile("./build/moments.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	logFile, err := os.OpenFile("/Users/bytedance/Developer/Moments//build/moments.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		panic(err)
 	}
@@ -54,10 +58,10 @@ func RedirectLogStd() {
 	logger.SetOutput(LOG2STDERR)
 }
 
-func setLogPrefix(level Level) {
+func setLogPrefix(level Level, requestId string) {
 	_, file, line, ok := runtime.Caller(LOGCALLERDEPTH)
 	if ok {
-		logPrefix = fmt.Sprintf("[%s][%s:%d]", levelTag[level], filepath.Base(file), line)
+		logPrefix = fmt.Sprintf("[%s][%s:%d %s]", levelTag[level], filepath.Base(file), line, requestId)
 	} else {
 		logPrefix = fmt.Sprintf("[%s]", levelTag[level])
 	}
@@ -67,27 +71,56 @@ func setLogPrefix(level Level) {
 	logger.SetPrefix(logPrefix)
 }
 
-func Debug(v ...interface{}) {
-	setLogPrefix(DEBUG)
+func Trace(c *gin.Context, v ...interface{}) {
+	requestId := ""
+	if c != nil {
+		requestId = c.GetHeader(middleware.TrackingHeader)
+	}
+	setLogPrefix(TRACE, requestId)
 	logger.Println(v...)
 }
 
-func Info(v ...interface{}) {
-	setLogPrefix(INFO)
+func Debug(c *gin.Context, v ...interface{}) {
+	requestId := ""
+	if c != nil {
+		requestId = c.GetHeader(middleware.TrackingHeader)
+	}
+	setLogPrefix(DEBUG, requestId)
 	logger.Println(v...)
 }
 
-func Warn(v ...interface{}) {
-	setLogPrefix(WARN)
+func Info(c *gin.Context, v ...interface{}) {
+	requestId := ""
+	if c != nil {
+		requestId = c.GetHeader(middleware.TrackingHeader)
+	}
+	setLogPrefix(INFO, requestId)
 	logger.Println(v...)
 }
 
-func Error(v ...interface{}) {
-	setLogPrefix(ERROR)
+func Warn(c *gin.Context, v ...interface{}) {
+	requestId := ""
+	if c != nil {
+		requestId = c.GetHeader(middleware.TrackingHeader)
+	}
+	setLogPrefix(WARN, requestId)
 	logger.Println(v...)
 }
 
-func Fatal(v ...interface{}) {
-	setLogPrefix(FATAL)
+func Error(c *gin.Context, v ...interface{}) {
+	requestId := ""
+	if c != nil {
+		requestId = c.GetHeader(middleware.TrackingHeader)
+	}
+	setLogPrefix(ERROR, requestId)
+	logger.Println(v...)
+}
+
+func Fatal(c *gin.Context, v ...interface{}) {
+	requestId := ""
+	if c != nil {
+		requestId = c.GetHeader(middleware.TrackingHeader)
+	}
+	setLogPrefix(FATAL, requestId)
 	logger.Println(v...)
 }
