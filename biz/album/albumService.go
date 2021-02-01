@@ -1,59 +1,66 @@
-package service
+package album
 
 import (
-	"Moments/model"
 	"Moments/pkg/log"
 	"strings"
 
-	"go.mongodb.org/mongo-driver/bson"
+	"github.com/gin-gonic/gin"
 )
 
-//type Album struct {
-//	Uid     int32  `json:"uid"`
-//	AidList bson.A `json:"aid_list"` // this will use as one single value if needed
-//}
+type AlbumHandler struct {
+	Data *Album
+	Impl AlbumModel
+}
 
-type Album model.Album
+func NewAlbumHandler() *AlbumHandler {
+	return &AlbumHandler{
+		Data: &Album{},
+		Impl: &AlbumModelImpl{},
+	}
+}
 
-func (a *Album) Add() error {
-	err := model.NewAlbum(a.Uid)
+func (handler *AlbumHandler) AddAlbum(c *gin.Context) error {
+	err := handler.Impl.CreateAlbumByUid(handler.Data.Uid)
 	return err
 }
 
-// Append append to the article_id (aid) into data row
-func (a *Album) Append() error {
-	err := model.AppendAlbum(bson.M{"uid": a.Uid}, a.AidList[0].(int64))
+// AppendAlbum append to the article_id (aid) into data row
+func (handler *AlbumHandler) AppendAlbum(c *gin.Context) error {
+	uid := handler.Data.Uid
+	aid := handler.Data.AidList[0]
+	err := handler.Impl.AppendAlbumByUidAid(uid, aid)
 	if err != nil {
 		if strings.Contains(err.Error(), "no documents in result") {
-			err = a.Add()
+			err = handler.Impl.CreateAlbumByUid(uid)
 			if err != nil {
-				log.Error("add album failed,", err.Error())
+				log.Error(c, "add album failed,", err.Error())
 				return err
 			}
-			err = model.AppendAlbum(bson.M{"uid": a.Uid}, a.AidList[0].(int64))
+			err = handler.Impl.AppendAlbumByUidAid(uid, aid)
 			if err != nil {
-				log.Error("add album failed,", err.Error())
+				log.Error(c, "add album failed,", err.Error())
 				return err
 			}
 		} else {
-			log.Error("add album failed,", err.Error())
+			log.Error(c, "add album failed,", err.Error())
 		}
 	}
 	return err
 }
 
-// Delete delete an article from album
-func (a *Album) Delete() error {
-	err := model.RemoveAlbum(map[string]interface{}{"uid": a.Uid}, a.AidList[0].(int64))
+// DeleteAlbum delete an article from album
+func (handler *AlbumHandler) DeleteAlbum(c *gin.Context) error {
+	aid := handler.Data.AidList[0]
+	err := handler.Impl.RemoveAlbumByUidAid(handler.Data.Uid, aid)
 	return err
 }
 
-func (a *Album) Detail() error {
-	album, err := model.DetailAlbum(map[string]interface{}{"uid": a.Uid})
+func (handler *AlbumHandler) DetailAlbum(c *gin.Context) error {
+	album, err := handler.Impl.GetAlbumDetailByUid(handler.Data.Uid)
 	if err != nil {
-		log.Error("get album detail error")
+		log.Error(c, "get album detail error")
 		return err
 	}
-	a.AidList = album["aid_list"].(bson.A)
+	handler.Data.AidList = album.AidList
 	return err
 }

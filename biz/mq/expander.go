@@ -7,7 +7,7 @@ https://rocketmq.apache.org/docs/transaction-example/
 */
 
 import (
-	"Moments/model"
+	"Moments/biz/friend"
 	"Moments/pkg/log"
 	"context"
 	"encoding/json"
@@ -71,7 +71,7 @@ func callback(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.Cons
 
 		// todo 获取好友列表，然后遍历调用 AppendTimeline
 
-		friendList, err := model.GetFriend(uid)
+		friendList, err := friend.GetFriend(uid)
 		if err != nil {
 			log.Error("get frined list failed,", err.Error())
 			return consumer.ConsumeRetryLater, err

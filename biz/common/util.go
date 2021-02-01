@@ -1,6 +1,7 @@
-package model
+package common
 
 import (
+	"Moments/biz/database"
 	"Moments/pkg/log"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -11,7 +12,7 @@ import (
 */
 
 func queryOne(dbname string, filter map[string]interface{}) (map[string]interface{}, error) {
-	db, client, ctx, _ := ConnectDatabase()
+	db, client, ctx, _ := database.ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			log.Error("error while trying to disconnect database:", err.Error())
@@ -30,7 +31,7 @@ func queryOne(dbname string, filter map[string]interface{}) (map[string]interfac
 
 // useless function
 func query(dbname string, filter map[string]interface{}) ([]interface{}, error) {
-	db, client, ctx, _ := ConnectDatabase()
+	db, client, ctx, _ := database.ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			log.Error("error while trying to disconnect database:", err.Error())
@@ -58,7 +59,7 @@ func query(dbname string, filter map[string]interface{}) ([]interface{}, error) 
 }
 
 func update(dbname string, filter map[string]interface{}, data map[string]interface{}) error {
-	db, client, ctx, _ := ConnectDatabase()
+	db, client, ctx, _ := database.ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			log.Error("error while trying to disconnect database:", err.Error())
@@ -83,7 +84,7 @@ func update(dbname string, filter map[string]interface{}, data map[string]interf
 }
 
 func insert(dbname string, data interface{}) error {
-	db, client, ctx, _ := ConnectDatabase()
+	db, client, ctx, _ := database.ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			log.Error("error while trying to disconnect database:", err.Error())
@@ -100,7 +101,7 @@ func insert(dbname string, data interface{}) error {
 }
 
 func remove(dbname string, filter map[string]interface{}) error {
-	db, client, ctx, _ := ConnectDatabase()
+	db, client, ctx, _ := database.ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			log.Error("error while trying to disconnect database:", err.Error())
@@ -119,7 +120,7 @@ func remove(dbname string, filter map[string]interface{}) error {
 /* ---------------------------------- Pubilc ---------------------------------- */
 
 func QueryOne(dbname string, filter map[string]interface{}) (map[string]interface{}, error) {
-	db, client, ctx, _ := ConnectDatabase()
+	db, client, ctx, _ := database.ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			log.Error("error while trying to disconnect database:", err.Error())
@@ -137,7 +138,7 @@ func QueryOne(dbname string, filter map[string]interface{}) (map[string]interfac
 }
 
 func Insert(dbname string, data interface{}) error {
-	db, client, ctx, _ := ConnectDatabase()
+	db, client, ctx, _ := database.ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			log.Error("error while trying to disconnect database:", err.Error())

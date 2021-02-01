@@ -1,4 +1,4 @@
-package model
+package database
 
 import (
 	"Moments/pkg/hint"
@@ -48,7 +48,7 @@ func (e *mongoEngine) Connect() error {
 	clientOptions := options.Client().ApplyURI(URI)
 	e.client, err = mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
-		log.Error("mongodb connect failed:", err.Error())
+		log.Error(nil,"mongodb connect failed:", err.Error())
 		return hint.CustomError{
 			Code: hint.CONNECT_FAILED,
 			Err:  err,
@@ -65,14 +65,14 @@ func (e *mongoEngine) Disconnect() error {
 }
 
 func (e *mongoEngine) Query(collection string, filter Map) ([]Map, error) {
-	db = e.client.Database(DATABASE)
+	db := e.client.Database(DATABASE)
 	ctx, cancelFun := context.WithTimeout(context.Background(), DATABASE_TIMEOUT)
 	defer cancelFun()
 
 	c := db.Collection(collection)
 	cur, err := c.Find(ctx, filter)
 	if err != nil {
-		log.Error("mongodb query failed:", err.Error())
+		log.Error(nil,"mongodb query failed:", err.Error())
 		return nil, hint.CustomError{
 			Code: hint.QUERY_INTERNAL_ERROR,
 			Err:  err,
@@ -80,7 +80,7 @@ func (e *mongoEngine) Query(collection string, filter Map) ([]Map, error) {
 	}
 	var rows []bson.M
 	if err = cur.All(ctx, &rows); err != nil {
-		log.Error("traverse query data failed:", err.Error())
+		log.Error(nil,"traverse query data failed:", err.Error())
 		return nil, hint.CustomError{
 			Code: hint.QUERY_INTERNAL_ERROR,
 			Err:  err,
@@ -95,7 +95,7 @@ func (e *mongoEngine) Query(collection string, filter Map) ([]Map, error) {
 }
 
 func (e *mongoEngine) Update(collection string, filter Map, new Map) error {
-	db = e.client.Database(DATABASE)
+	db := e.client.Database(DATABASE)
 	ctx, cancelFun := context.WithTimeout(context.Background(), DATABASE_TIMEOUT)
 	defer cancelFun()
 
@@ -110,7 +110,7 @@ func (e *mongoEngine) Update(collection string, filter Map, new Map) error {
 	c := db.Collection(collection)
 	_, err := c.UpdateOne(ctx, filter, up)
 	if err != nil {
-		log.Error("mongodb update data failed:", err.Error())
+		log.Error(nil,"mongodb update data failed:", err.Error())
 		return hint.CustomError{
 			Code: hint.UPDATE_INTERNAL_ERROR,
 			Err:  err,
@@ -120,14 +120,14 @@ func (e *mongoEngine) Update(collection string, filter Map, new Map) error {
 }
 
 func (e *mongoEngine) Insert(collection string, data []interface{}) error {
-	db = e.client.Database(DATABASE)
+	db := e.client.Database(DATABASE)
 	ctx, cancelFun := context.WithTimeout(context.Background(), DATABASE_TIMEOUT)
 	defer cancelFun()
 
 	c := db.Collection(collection)
 	_, err := c.InsertMany(ctx, data)
 	if err != nil {
-		log.Error("mongodb insert data failed:", err.Error())
+		log.Error(nil,"mongodb insert data failed:", err.Error())
 		return hint.CustomError{
 			Code: hint.INSERT_INTERNAL_ERROR,
 			Err:  err,
@@ -137,14 +137,14 @@ func (e *mongoEngine) Insert(collection string, data []interface{}) error {
 }
 
 func (e *mongoEngine) Remove(collection string, filter Map) error {
-	db = e.client.Database(DATABASE)
+	db := e.client.Database(DATABASE)
 	ctx, cancelFun := context.WithTimeout(context.Background(), DATABASE_TIMEOUT)
 	defer cancelFun()
 
 	c := db.Collection(collection)
 	_, err := c.DeleteMany(ctx, filter)
 	if err != nil {
-		log.Error("mongo delete data failed:", err.Error())
+		log.Error(nil,"mongo delete data failed:", err.Error())
 		return hint.CustomError{
 			Code: hint.DELETE_INTERNAL_ERROR,
 			Err:  err,
@@ -173,6 +173,15 @@ func BsonAToSliceString(data bson.A) []string {
 	strSlice := make([]string, len(data))
 	for _, v := range data {
 		s := v.(string)
+		strSlice = append(strSlice, s)
+	}
+	return strSlice
+}
+
+func BsonToSliceInt64(data bson.A) []int64 {
+	strSlice := make([]int64, len(data))
+	for _, v := range data {
+		s := v.(int64)
 		strSlice = append(strSlice, s)
 	}
 	return strSlice

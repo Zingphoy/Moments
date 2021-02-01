@@ -1,10 +1,6 @@
-package album
+package friend
 
-import (
-	"Moments/biz/friend"
-)
-
-type FriendSrv friend.Friend
+type FriendSrv Friend
 
 func Add(uid int32, fuid int32) {
 

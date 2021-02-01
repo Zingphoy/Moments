@@ -1,4 +1,4 @@
-package model
+package timeline
 
 import (
 	"Moments/pkg/log"

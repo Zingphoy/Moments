@@ -1,10 +1,11 @@
-package service
+package article
 
 import (
-	"Moments/model"
+	"Moments/biz/album"
 	"Moments/pkg/log"
 	"fmt"
 
+	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
 
@@ -13,14 +14,21 @@ import (
 */
 
 type ArticleHandler struct {
-	Data *model.Article
-	Impl model.ArticleModel
+	Data *Article
+	Impl ArticleModel
 }
 
-func (handler *ArticleHandler) DetailArticle() error {
+func NewArticleHandler() *ArticleHandler {
+	return &ArticleHandler{
+		Data: &Article{},
+		Impl: &ArticleModelImpl{},
+	}
+}
+
+func (handler *ArticleHandler) DetailArticle(c *gin.Context) error {
 	detail, err := handler.Impl.GetArticleDetailByAid(handler.Data.Aid)
 	if err != nil {
-		log.Warn("get article detail by aid failed, aid:", handler.Data.Aid)
+		log.Warn(c, "get article detail by aid failed, aid:", handler.Data.Aid)
 		return err
 	}
 	handler.Data.Aid = detail.Aid
@@ -33,7 +41,7 @@ func (handler *ArticleHandler) DetailArticle() error {
 	return nil
 }
 
-func (handler *ArticleHandler) AddArticle() error {
+func (handler *ArticleHandler) AddArticle(c *gin.Context) error {
 	aid, err := handler.Impl.GenerateAid(handler.Data.Uid)
 	if err != nil {
 		return err
@@ -70,16 +78,16 @@ func (handler *ArticleHandler) AddArticle() error {
 }
 
 // DeleteArticle delete an article by aid softly, a wrapper function of Delete
-func (handler *ArticleHandler) DeleteArticle() error {
-	err := handler.Delete(true)
+func (handler *ArticleHandler) DeleteArticle(c *gin.Context) error {
+	err := handler.Delete(c, true)
 	if err != nil {
-		log.Warn("delete article failed")
+		log.Warn(c, "delete article failed")
 		return errors.Wrap(err, "delete article failed")
 	}
 	return nil
 }
 
-func (handler *ArticleHandler) Delete(isSoftDelete bool) error {
+func (handler *ArticleHandler) Delete(c *gin.Context, isSoftDelete bool) error {
 	var err error
 	uid, aid := handler.Data.Uid, handler.Data.Aid
 	if isSoftDelete {
@@ -87,26 +95,29 @@ func (handler *ArticleHandler) Delete(isSoftDelete bool) error {
 	} else {
 		err = handler.Impl.DeleteArticleByUidAid(uid, aid)
 		if err != nil {
-			log.Error("delete article failed")
+			log.Error(c, "delete article failed")
 		}
 
-		err = model.RemoveAlbum(map[string]interface{}{"uid": uid}, aid)
+		albumHandler := album.NewAlbumHandler()
+		albumHandler.Data.Uid = uid
+		albumHandler.Data.AidList = append(albumHandler.Data.AidList, aid)
+		err = albumHandler.DeleteAlbum(c)
 		if err != nil {
-			log.Error("remove album failed")
+			log.Error(c, "remove album failed")
 		}
 	}
 
 	if err != nil {
-		log.Error(fmt.Sprintf("delete article failed, aid=%d, error: %s", aid, err.Error()))
+		log.Error(c, fmt.Sprintf("delete article failed, aid=%d, error: %s", aid, err.Error()))
 		return err
 	}
 	return nil
 }
 
-func (handler *ArticleHandler) Comment() error {
+func (handler *ArticleHandler) Comment(c *gin.Context) error {
 	return nil
 }
 
-func (handler *ArticleHandler) Like() error {
+func (handler *ArticleHandler) Like(c *gin.Context) error {
 	return nil
 }

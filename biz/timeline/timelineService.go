@@ -1,4 +1,4 @@
-package service
+package timeline
 
 //func RefreshTimeline(uid int32, latestAid int64, schema string) ([]*model.ArticleHandler, error) {
 //	var err error

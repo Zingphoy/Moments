@@ -1,4 +1,4 @@
-package model
+package comment
 
 type Comment struct {
 	Id       interface{}              `json:"-"`

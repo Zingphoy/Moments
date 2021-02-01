@@ -1,41 +1,30 @@
-package service
-
-import (
-	"Moments/mocks"
-	"Moments/model"
-	"Moments/pkg/log"
-	"testing"
-
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
-)
+package article
 
 func init() {
-	log.InitLogger(true)
 	//mq.InitMQ()
 	//mq.StopMQ()	// consumer要先start才能shutdown，否则panic
 }
 
-func TestArticleSrv_DetailArticle(t *testing.T) {
-	m := gomock.NewController(t)
-	defer m.Finish()
-	mockArticle := mocks.NewMockArticleModel(m)
+//func TestArticleSrv_DetailArticle(t *testing.T) {
+	//m := gomock.NewController(t)
+	//defer m.Finish()
+	//mockArticle := mocks.NewMockArticleModel(m)
+	//
+	//test := struct {
+	//	Article
+	//	error
+	//}{
+	//	Article: Article{Aid: 110, Uid: 120, Content: "test mock"},
+	//	error:   nil,
+	//}
+	//mockArticle.EXPECT().GetArticleDetailByAid(gomock.Any()).Return(&test.Article, test.error)
+	//handler := ArticleHandler{Data: &test.Article, Impl: mockArticle}
+	//err := handler.DetailArticle()
+	//assert.Nil(t, err)
+	//assert.Equal(t, test.Article, test.Article)
+//}
 
-	test := struct {
-		model.Article
-		error
-	}{
-		Article: model.Article{Aid: 110, Uid: 120, Content: "test mock"},
-		error:   nil,
-	}
-	mockArticle.EXPECT().GetArticleDetailByAid(gomock.Any()).Return(&test.Article, test.error)
-	handler := ArticleHandler{Data: &test.Article, Impl: mockArticle}
-	err := handler.DetailArticle()
-	assert.Nil(t, err)
-	assert.Equal(t, test.Article, test.Article)
-}
-
-func TestArticleSrv_AddArticle(t *testing.T) {
+//func TestArticleSrv_AddArticle(t *testing.T) {
 	//m := gomock.NewController(t)
 	//defer m.Finish()
 	//mockArticle := mocks.NewMockArticleModel(m)
@@ -47,11 +36,11 @@ func TestArticleSrv_AddArticle(t *testing.T) {
 	//err := handler.AddArticle()
 	//assert.Nil(t, err)
 
-}
+//}
 
-func TestArticleSrv_DeleteArticle(t *testing.T) {
-
-}
+//func TestArticleSrv_DeleteArticle(t *testing.T) {
+//
+//}
 
 // 老单测代码废弃，但是暂时保留注释
 //func mockTestData4ArticleService() *ArticleService {

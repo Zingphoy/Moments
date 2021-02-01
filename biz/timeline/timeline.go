@@ -1,4 +1,4 @@
-package model
+package timeline
 
 /*
  timeline is sorted in order depends on its timing of insertion.
@@ -6,6 +6,9 @@ package model
 */
 
 import (
+	"Moments/biz/article"
+	"Moments/biz/database"
+	"Moments/model"
 	"Moments/pkg/log"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -25,8 +28,8 @@ type TimelineObject interface {
 }
 
 type Timeline struct {
-	Uid      int32      `json:"uid"`
-	Articles []*Article `json:"articles"`
+	Uid      int32              `json:"uid"`
+	Articles []*article.Article `json:"articles"`
 }
 
 // todo 补充鉴权中间件
@@ -41,26 +44,26 @@ func NewTimelineObject(data map[string]interface{}) TimelineObject {
 		tl.Uid = data["uid"].(int32)
 	}
 	if _, ok := data["articles"]; ok {
-		tl.Articles = data["articles"].([]*Article)
+		tl.Articles = data["articles"].([]*article.Article)
 	}
 	return &tl
 }
 
 // GetUserTimelineArticleDetail get details of all articles from timeline
-func (tl *Timeline) GetUserTimelineArticleDetail() ([]*Article, error) {
-	err := Client.Connect()
+func (tl *Timeline) GetUserTimelineArticleDetail() ([]*article.Article, error) {
+	err := database.Client.Connect()
 	if err != nil {
 		return nil, err
 	}
-	defer Client.Disconnect()
+	defer database.Client.Disconnect()
 
 	filter := map[string]interface{}{"uid": tl.Uid}
-	data, err := Client.Query(timelineClt, filter)
+	data, err := database.Client.Query(timelineClt, filter)
 	if err != nil {
 		return nil, err
 	}
 
-	var ret = make([]*Article, len(data))
+	var ret = make([]*article.Article, len(data))
 	for _, aid := range data {
 		// todo
 		// 通过aid获取database
@@ -74,14 +77,14 @@ func (tl *Timeline) GetUserTimelineArticleDetail() ([]*Article, error) {
 // GetUserTimelineRefresh when client refresh timeline, it will fetch 10 newest Article and check privacy,
 // finally offer the matched Article regardless of amount. Don't deal with the case when less than 1 will be returned.
 func (tl *Timeline) GetUserTimelineRefresh(aid int64) ([]int64, error) {
-	err := Client.Connect()
+	err := database.Client.Connect()
 	if err != nil {
 		return nil, err
 	}
-	defer Client.Disconnect()
+	defer database.Client.Disconnect()
 
 	filter := map[string]interface{}{"uid": tl.Uid}
-	data, err := Client.Query(timelineClt, filter)
+	data, err := database.Client.Query(timelineClt, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -101,14 +104,14 @@ func (tl *Timeline) GetUserTimelineRefresh(aid int64) ([]int64, error) {
 
 // GetUserTimelineLoadMore almost the same as GetTimelineRefreshByUid, for the opposite operation
 func (tl *Timeline) GetUserTimelineLoadMore(aid int64) ([]int64, error) {
-	err := Client.Connect()
+	err := database.Client.Connect()
 	if err != nil {
 		return nil, err
 	}
-	defer Client.Disconnect()
+	defer database.Client.Disconnect()
 
 	filter := map[string]interface{}{"uid": tl.Uid}
-	data, err := Client.Query(timelineClt, filter)
+	data, err := database.Client.Query(timelineClt, filter)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
@@ -134,7 +137,7 @@ func (tl *Timeline) GetUserTimelineLoadMore(aid int64) ([]int64, error) {
 
 // AppendUserTimeline append timeline to existing user
 func (tl *Timeline) AppendUserTimeline(aid int64) error {
-	db, client, ctx, _ := ConnectDatabase()
+	db, client, ctx, _ := database.ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			log.Error("error while trying to disconnect database:", err.Error())
@@ -170,7 +173,7 @@ func (tl *Timeline) AppendUserTimeline(aid int64) error {
 // RemoveTimeline remove one Article from timeline
 func (tl *Timeline) RemoveUserTimeline(aid int64) error {
 	filter := map[string]interface{}{"uid": tl.Uid}
-	row, err := queryOne("timeline", filter)
+	row, err := model.queryOne("timeline", filter)
 	if err != nil {
 		log.Error(err.Error())
 		return err
@@ -188,7 +191,7 @@ func (tl *Timeline) RemoveUserTimeline(aid int64) error {
 	aids := append(tmpA, tmpB...)
 	data := map[string]interface{}{"aid_list": aids}
 	filter = map[string]interface{}{"uid": tl.Uid}
-	err = update("timeline", filter, data)
+	err = model.update("timeline", filter, data)
 	if err != nil {
 		log.Error("append timeline failed,", err.Error())
 		return err
@@ -199,7 +202,7 @@ func (tl *Timeline) RemoveUserTimeline(aid int64) error {
 // InsertNewTimeline insert a new timeline for a new user
 func (tl *Timeline) InsertNewTimeline(uid int32, aids []int64) error {
 	data := map[string]interface{}{"uid": uid, "aid_list": aids}
-	err := insert("timeline", data)
+	err := model.insert("timeline", data)
 	if err != nil {
 		log.Error("insert timeline data failed,", err.Error())
 		return err
@@ -209,7 +212,7 @@ func (tl *Timeline) InsertNewTimeline(uid int32, aids []int64) error {
 
 // DeleteRowTimeline todo 这里没封装好，但只用来测试函数
 func DeleteRowTimeline(filter interface{}) error {
-	db, client, ctx, _ := ConnectDatabase()
+	db, client, ctx, _ := database.ConnectDatabase()
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			log.Error("error while trying to disconnect database:", err.Error())

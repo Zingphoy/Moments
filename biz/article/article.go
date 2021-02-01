@@ -1,6 +1,7 @@
-package model
+package article
 
 import (
+	"Moments/biz/database"
 	"Moments/pkg/hint"
 	"Moments/pkg/log"
 	"Moments/pkg/utils"
@@ -28,7 +29,7 @@ type Article struct {
 type ArticleModel interface {
 	GenerateAid(uid int32) (int64, error)
 	GetArticleDatabase(aid int64) string
-	IsArticleExist(aid int64) bool
+	IsArticleExist(aid int64) error
 	GetArticleDetailByAid(aid int64) (*Article, error)
 	AddArticle(article *Article) error
 	//UpdateArticle(filter Map, data Map) error
@@ -47,13 +48,13 @@ func (a *ArticleModelImpl) GenerateAid(uid int32) (int64, error) {
 	tmp := strconv.FormatInt(int64(uid), 10) + ts
 	aid := utils.Str(tmp).MustInt64()
 	yes := a.IsArticleExist(aid)
-	if yes {
+	if yes != nil {
 		return 0, hint.CustomError{
 			Code: hint.AID_ALREADY_EXIST,
 			Err:  errors.New("aid already exists"),
 		}
 	}
-	log.Info("generated aid:", aid)
+	log.Info(nil, "generated aid:", aid)
 	return aid, nil
 }
 
@@ -64,31 +65,31 @@ func (a *ArticleModelImpl) GetArticleDatabase(aid int64) string {
 }
 
 // IsArticleExist check if specific aid is already existed
-func (a *ArticleModelImpl) IsArticleExist(aid int64) bool {
-	client := NewDatabaseClient()
+func (a *ArticleModelImpl) IsArticleExist(aid int64) error {
+	client := database.NewDatabaseClient()
 	err := client.Connect()
 	if err != nil {
 		// shall not return false, otherwise aid would be redundant
-		return true
+		return err
 	}
 	defer client.Disconnect()
 
-	rows, err := client.Query(a.GetArticleDatabase(aid), Map{"aid": aid})
+	rows, err := client.Query(a.GetArticleDatabase(aid), database.Map{"aid": aid})
 	if err != nil && err.(hint.CustomError).Code == hint.QUERY_INTERNAL_ERROR {
-		log.Info(err.Error())
-		return false
+		log.Info(nil, err.Error())
+		return err
 	}
 
 	if len(rows) <= 0 {
-		log.Info("aid not exists")
-		return false
+		log.Info(nil, "aid not exists")
+		return err
 	}
-	return true
+	return nil
 }
 
 // GetArticleDetailByAid get detail of an Article with specific filter
 func (a *ArticleModelImpl) GetArticleDetailByAid(aid int64) (*Article, error) {
-	client := NewDatabaseClient()
+	client := database.NewDatabaseClient()
 	err := client.Connect()
 	if err != nil {
 		return nil, err
@@ -96,9 +97,9 @@ func (a *ArticleModelImpl) GetArticleDetailByAid(aid int64) (*Article, error) {
 	defer client.Disconnect()
 
 	dbname := a.GetArticleDatabase(aid)
-	rows, err := client.Query(dbname, Map{"aid": aid})
+	rows, err := client.Query(dbname, database.Map{"aid": aid})
 	if err != nil && err.(hint.CustomError).Code == hint.QUERY_INTERNAL_ERROR {
-		log.Info(err.Error())
+		log.Info(nil, err.Error())
 		return nil, err
 	}
 	if len(rows) == 0 {
@@ -113,7 +114,7 @@ func (a *ArticleModelImpl) GetArticleDetailByAid(aid int64) (*Article, error) {
 	article.Uid = row["uid"].(int32)
 	article.PostTime = row["post_time"].(int64)
 	article.Content = row["content"].(string)
-	article.PhotoList = BsonAToSliceString(row["photo_list"].(bson.A))
+	article.PhotoList = database.BsonAToSliceString(row["photo_list"].(bson.A))
 	article.Privacy = row["privacy"].(int32)
 	article.IsDeleted = 0
 	return &article, nil
@@ -121,7 +122,7 @@ func (a *ArticleModelImpl) GetArticleDetailByAid(aid int64) (*Article, error) {
 
 // AddArticle add Article to database, and expand this Article into friends' timeline
 func (a *ArticleModelImpl) AddArticle(art *Article) error {
-	client := NewDatabaseClient()
+	client := database.NewDatabaseClient()
 	err := client.Connect()
 	if err != nil {
 		return err
@@ -130,7 +131,7 @@ func (a *ArticleModelImpl) AddArticle(art *Article) error {
 
 	err = client.Insert(a.GetArticleDatabase(art.Aid), []interface{}{art})
 	if err != nil && err.(hint.CustomError).Code == hint.INSERT_INTERNAL_ERROR {
-		log.Error(err.Error())
+		log.Error(nil, err.Error())
 		return err
 	}
 	return nil
@@ -138,16 +139,16 @@ func (a *ArticleModelImpl) AddArticle(art *Article) error {
 
 // DeleteArticleByUidAid delete Article permanently
 func (a *ArticleModelImpl) DeleteArticleByUidAid(uid int32, aid int64) error {
-	client := NewDatabaseClient()
+	client := database.NewDatabaseClient()
 	err := client.Connect()
 	if err != nil {
 		return err
 	}
 	defer client.Disconnect()
 
-	err = client.Remove(a.GetArticleDatabase(aid), Map{"aid": aid, "uid": uid})
+	err = client.Remove(a.GetArticleDatabase(aid), database.Map{"aid": aid, "uid": uid})
 	if err != nil && err.(hint.CustomError).Code == hint.DELETE_INTERNAL_ERROR {
-		log.Error("permanently delete Article failed, error:", err.Error())
+		log.Error(nil, "permanently delete Article failed, error:", err.Error())
 		return err
 	}
 	return nil
@@ -155,20 +156,21 @@ func (a *ArticleModelImpl) DeleteArticleByUidAid(uid int32, aid int64) error {
 
 // DeleteArticleSoftByUidAid delete Article softly
 func (a *ArticleModelImpl) DeleteArticleSoftByUidAid(uid int32, aid int64) error {
-	client := NewDatabaseClient()
+	client := database.NewDatabaseClient()
 	err := client.Connect()
 	if err != nil {
 		return err
 	}
 	defer client.Disconnect()
 
-	filter := Map{"aid": aid, "uid": uid}
-	updatedData := Map{"is_deleted": 1}
+	filter := database.Map{"aid": aid, "uid": uid}
+	updatedData := database.Map{"is_deleted": 1}
 	err = client.Update(a.GetArticleDatabase(aid), filter, updatedData)
 	if err != nil && err.(hint.CustomError).Code == hint.UPDATE_INTERNAL_ERROR {
-		log.Error("softly delete Article failed, error:", err.Error())
+		log.Error(nil, "softly delete Article failed, error:", err.Error())
+		return err
 	}
-	return err
+	return nil
 }
 
 func (a *ArticleModelImpl) Update() error {

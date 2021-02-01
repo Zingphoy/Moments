@@ -1,6 +1,8 @@
-package model
+package friend
 
 import (
+	"Moments/model"
+
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -12,7 +14,7 @@ type Friend struct {
 var collectionName = "friend"
 
 func GetFriend(uid int32) ([]int32, error) {
-	row, err := queryOne(collectionName, bson.M{"uid": uid})
+	row, err := model.queryOne(collectionName, bson.M{"uid": uid})
 	if err != nil {
 		return make([]int32, 0, 0), err
 	}
@@ -20,14 +22,14 @@ func GetFriend(uid int32) ([]int32, error) {
 }
 
 func AddNewFriend(uid int32, fuid int32) error {
-	row, err := queryOne(collectionName, bson.M{"uid": uid})
+	row, err := model.queryOne(collectionName, bson.M{"uid": uid})
 	if err != nil {
 		return err
 	}
 
 	friendList := row["friend_list"].([]int32)
 	friendList = append(friendList, fuid)
-	err = update(collectionName, bson.M{"uid": uid}, bson.M{"friend_list": friendList})
+	err = model.update(collectionName, bson.M{"uid": uid}, bson.M{"friend_list": friendList})
 	return err
 }
 

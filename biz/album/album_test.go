@@ -1,4 +1,4 @@
-package model
+package album
 
 //
 //type albumTest struct {
