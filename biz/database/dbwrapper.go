@@ -48,7 +48,7 @@ func (e *mongoEngine) Connect() error {
 	clientOptions := options.Client().ApplyURI(URI)
 	e.client, err = mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
-		log.Error(nil,"mongodb connect failed:", err.Error())
+		log.Error(nil, "mongodb connect failed:", err.Error())
 		return hint.CustomError{
 			Code: hint.CONNECT_FAILED,
 			Err:  err,
@@ -72,7 +72,7 @@ func (e *mongoEngine) Query(collection string, filter Map) ([]Map, error) {
 	c := db.Collection(collection)
 	cur, err := c.Find(ctx, filter)
 	if err != nil {
-		log.Error(nil,"mongodb query failed:", err.Error())
+		log.Error(nil, "mongodb query failed:", err.Error())
 		return nil, hint.CustomError{
 			Code: hint.QUERY_INTERNAL_ERROR,
 			Err:  err,
@@ -80,7 +80,7 @@ func (e *mongoEngine) Query(collection string, filter Map) ([]Map, error) {
 	}
 	var rows []bson.M
 	if err = cur.All(ctx, &rows); err != nil {
-		log.Error(nil,"traverse query data failed:", err.Error())
+		log.Error(nil, "traverse query data failed:", err.Error())
 		return nil, hint.CustomError{
 			Code: hint.QUERY_INTERNAL_ERROR,
 			Err:  err,
@@ -99,18 +99,22 @@ func (e *mongoEngine) Update(collection string, filter Map, new Map) error {
 	ctx, cancelFun := context.WithTimeout(context.Background(), DATABASE_TIMEOUT)
 	defer cancelFun()
 
-	var up bson.D
-	for k, v := range new {
-		up = bson.D{{"$set",
-			bson.D{
-				{k, v},
-			},
-		}}
+	old := bson.D{}
+	for k, v := range filter {
+		old = append(old, bson.E{k, v})
 	}
+
+	var arg = bson.D{}
+	var up = bson.D{{"$set", nil}}
+	for k, v := range new {
+		arg = append(arg, bson.E{k, v})
+	}
+	up[0].Value = arg
+
 	c := db.Collection(collection)
-	_, err := c.UpdateOne(ctx, filter, up)
+	_, err := c.UpdateOne(ctx, old, up)
 	if err != nil {
-		log.Error(nil,"mongodb update data failed:", err.Error())
+		log.Error(nil, "mongodb update data failed:", err.Error())
 		return hint.CustomError{
 			Code: hint.UPDATE_INTERNAL_ERROR,
 			Err:  err,
@@ -127,7 +131,7 @@ func (e *mongoEngine) Insert(collection string, data []interface{}) error {
 	c := db.Collection(collection)
 	_, err := c.InsertMany(ctx, data)
 	if err != nil {
-		log.Error(nil,"mongodb insert data failed:", err.Error())
+		log.Error(nil, "mongodb insert data failed:", err.Error())
 		return hint.CustomError{
 			Code: hint.INSERT_INTERNAL_ERROR,
 			Err:  err,
@@ -144,7 +148,7 @@ func (e *mongoEngine) Remove(collection string, filter Map) error {
 	c := db.Collection(collection)
 	_, err := c.DeleteMany(ctx, filter)
 	if err != nil {
-		log.Error(nil,"mongo delete data failed:", err.Error())
+		log.Error(nil, "mongo delete data failed:", err.Error())
 		return hint.CustomError{
 			Code: hint.DELETE_INTERNAL_ERROR,
 			Err:  err,
