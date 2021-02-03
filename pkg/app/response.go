@@ -10,14 +10,14 @@ type GinCtx struct {
 	C *gin.Context
 }
 
-type Respons struct {
+type Response struct {
 	Code int         `json:"code"`
 	Msg  string      `json:"msg"`
 	Data interface{} `json:"data"`
 }
 
 func (C *GinCtx) MakeJsonRes(httpCode int, statusCode int, data interface{}) {
-	C.C.JSON(httpCode, Respons{
+	C.C.JSON(httpCode, Response{
 		Code: statusCode,
 		Msg:  hint.GetHintMsg(statusCode),
 		Data: data,

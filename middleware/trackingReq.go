@@ -5,7 +5,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var trackingHeader = "Tracking-Id"
+var TrackingHeader = "Tracking-Id"
 
 func getTrackingId() string {
 	return uuid.New().String()
@@ -14,12 +14,12 @@ func getTrackingId() string {
 func TrackingId() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var tidNew string
-		tid := c.GetHeader(trackingHeader)
+		tid := c.GetHeader(TrackingHeader)
 		if tid == "" {
 			tidNew = getTrackingId()
-			c.Header(trackingHeader, tidNew)
+			c.Header(TrackingHeader, tidNew)
 		}
-		c.Set(trackingHeader, tidNew)
+		c.Set(TrackingHeader, tidNew)
 		c.Next()
 	}
 }

@@ -16,7 +16,7 @@ var (
 	LOGCALLERDEPTH = 2
 	logger         *log.Logger
 	logPrefix      string
-	levelTag       = []string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
+	levelTag       = []string{"TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
 	DEBUGFLAG      = false
 	LOG2FILE       *os.File
 	LOG2STDERR     = os.Stderr

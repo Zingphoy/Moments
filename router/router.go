@@ -1,11 +1,13 @@
 package router
 
 import (
+	"Moments/biz/album"
+	"Moments/biz/article"
 	"Moments/middleware"
 	"Moments/router/api"
-	v1 "Moments/router/api/v1"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func InitRouter() http.Handler {
@@ -24,20 +26,16 @@ func InitRouter() http.Handler {
 		// moments refresh or load more
 		//apiV1.GET("/moments/timeline", v1.GetTimeline)
 
-		// get article detail
-		apiV1.GET("/moments/article/detail", v1.GetArticleDetail)
+		/********** Article module **********/
+		apiV1.GET("/moments/article/detail", article.GetArticleDetail)
+		apiV1.POST("/moments/article/post", article.SendArticle)
+		apiV1.POST("/moments/article/delete", article.DeleteArticle)
+		apiV1.POST("/moments/article/comment", article.CommentArticle)
+		apiV1.POST("/moments/article/like", article.LikeArticle)
 
-		// post a new article
-		apiV1.POST("/moments/post", v1.SendArticle)
+		/********** Album module **********/
+		apiV1.GET("/moments/album/detail", album.GetAlbumDetail)
 
-		// delete an article softly
-		apiV1.POST("/moments/delete", v1.DeleteArticle)
-
-		// comment an article
-		apiV1.POST("/moments/comment", v1.CommentArticle)
-
-		// like an article
-		apiV1.POST("/moments/like", v1.LikeArticle)
 	}
 
 	//apiTest := r.Group("/test")
