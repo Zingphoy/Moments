@@ -78,6 +78,9 @@ type ArticleAddDeleteTestSuite struct {
 	IsAddArticleSuccess bool
 }
 
+/*
+ Test函数的执行顺序不是按照实现的顺序来的，而是按照Test函数的函数名在字母表中的顺序来执行的
+ */
 func (s *ArticleAddDeleteTestSuite) TestAddArticle() {
 	ami := ArticleModelImpl{}
 	s.TestData = Article{
@@ -109,7 +112,8 @@ func (s *ArticleAddDeleteTestSuite) TestDeleteArticleSoftly() {
 	}
 }
 
-func (s *ArticleAddDeleteTestSuite) TestDeleteArticle() {
+// 为了让这个单测在 TestDeleteArticleSoftly 后面运行，特意在函数名末加一个Z字母
+func (s *ArticleAddDeleteTestSuite) TestDeleteArticleZ() {
 	if s.IsAddArticleSuccess {
 		ami := ArticleModelImpl{}
 		// clear test data at the same time

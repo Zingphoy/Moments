@@ -18,6 +18,7 @@ type ArticleHandler struct {
 	Impl ArticleModel
 }
 
+// todo 改成依赖注入
 func NewArticleHandler() *ArticleHandler {
 	return &ArticleHandler{
 		Data: &Article{},
@@ -114,10 +115,10 @@ func (handler *ArticleHandler) Delete(c *gin.Context, isSoftDelete bool) error {
 	return nil
 }
 
-func (handler *ArticleHandler) Comment(c *gin.Context) error {
+func (handler *ArticleHandler) CommentArticle(c *gin.Context) error {
 	return nil
 }
 
-func (handler *ArticleHandler) Like(c *gin.Context) error {
+func (handler *ArticleHandler) LikeArticle(c *gin.Context) error {
 	return nil
 }

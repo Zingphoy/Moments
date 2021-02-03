@@ -46,6 +46,7 @@ type ArticleModelImpl struct {
 func (a *ArticleModelImpl) GenerateAid(uid int32) (int64, error) {
 	ts := strconv.FormatInt(time.Now().Unix(), 10)
 	tmp := strconv.FormatInt(int64(uid), 10) + ts
+	log.Fatal(nil, tmp)
 	aid := utils.Str(tmp).MustInt64()
 	yes := a.IsArticleExist(aid)
 	if yes != nil {
