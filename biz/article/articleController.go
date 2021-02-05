@@ -37,7 +37,7 @@ func GetArticleDetail(c *gin.Context) {
 		return
 	}
 
-	handler := NewArticleHandler()
+	handler := NewArticleService()
 	handler.Data.Aid = aid
 	err = handler.DetailArticle(c)
 	if err != nil {
@@ -60,7 +60,7 @@ func SendArticle(c *gin.Context) {
 		return
 	}
 
-	handler := ArticleHandler{Data: &articleData, Impl: &ArticleModelImpl{}}
+	handler := ArticleService{Data: &articleData, Impl: &ArticleModelImpl{}}
 	err = handler.AddArticle(c)
 	if err != nil {
 		log.Error(c, "error:", err.Error())
@@ -68,7 +68,7 @@ func SendArticle(c *gin.Context) {
 		return
 	}
 
-	albumHander := album.NewAlbumHandler()
+	albumHander := album.NewAlbumService()
 	albumHander.Data.Uid = handler.Data.Uid
 	albumHander.Data.AidList = []int64{handler.Data.Aid}
 	err = albumHander.AppendAlbum(c)
@@ -92,7 +92,7 @@ func DeleteArticle(c *gin.Context) {
 		return
 	}
 
-	handler := ArticleHandler{Data: &articleData, Impl: &ArticleModelImpl{}}
+	handler := ArticleService{Data: &articleData, Impl: &ArticleModelImpl{}}
 	err = handler.DeleteArticle(c)
 	if err != nil {
 		log.Error(c, "model delete error")
