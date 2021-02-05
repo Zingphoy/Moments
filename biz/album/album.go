@@ -18,7 +18,7 @@ type AlbumModel interface {
 	GetAlbumDetailByUid(uid int32) (*Album, error)
 	CreateAlbumByUid(uid int32) error
 	AppendAlbumByUidAid(uid int32, aid int64) error
-	RemoveAlbumByUidAid(uid int32, aid int64) error
+	RemoveArticleInAlbumByUidAid(uid int32, aid int64) error
 }
 
 type AlbumModelImpl struct {
@@ -38,7 +38,7 @@ func (a *AlbumModelImpl) GetAlbumDetailByUid(uid int32) (*Album, error) {
 
 	album, err := client.Query(dbname, database.Map{"uid": uid})
 	if err != nil {
-		log.Error(nil,"get album detail failed,", err.Error())
+		log.Error(nil, "get album detail failed,", err.Error())
 		return nil, err
 	}
 
@@ -79,22 +79,24 @@ func (a *AlbumModelImpl) AppendAlbumByUidAid(uid int32, aid int64) error {
 	defer client.Disconnect()
 
 	filter := database.Map{"uid": uid}
-	aids, err := client.Query(dbname, filter)
+	albums, err := client.Query(dbname, filter)
 	if err != nil {
 		return err
 	}
 
 	// todo 追加aid有问题
-	tempList, ok := aids[0]["aid_list"].(bson.A)
+	log.Info(nil, "88 ", albums)
+	log.Info(nil, "89 ", albums[0])
+	tempList, ok := albums[0]["aid_list"].(bson.A)
 	if !ok {
-		log.Error(nil,"aid_list is not slice")
+		log.Error(nil, "aid_list is not slice")
 	}
 	tempList = append(tempList, aid)
 	return client.Update("album", filter, bson.M{"aid_list": tempList})
 }
 
-// RemoveAlbumByUidAid delete Article from album permanently
-func (a *AlbumModelImpl) RemoveAlbumByUidAid(uid int32, aid int64) error {
+// RemoveArticleInAlbumByUidAid delete Article from album permanently
+func (a *AlbumModelImpl) RemoveArticleInAlbumByUidAid(uid int32, aid int64) error {
 	client := database.NewDatabaseClient()
 	err := client.Connect()
 	if err != nil {
@@ -110,15 +112,35 @@ func (a *AlbumModelImpl) RemoveAlbumByUidAid(uid int32, aid int64) error {
 
 	tempList, ok := aids[0]["aid_list"].(bson.A)
 	if !ok {
-		log.Error(nil,"aid_list is not slice")
+		log.Error(nil, "aid_list is not slice")
 	}
 
-	var list bson.A
-	for _, v := range tempList {
+	var head bson.A
+	var tail bson.A
+	for i, v := range tempList {
 		if v == aid {
-			continue
+			tail = tempList[i+1:]
+			break
 		}
-		list = append(list, v)
+		head = append(head, v)
 	}
-	return client.Update(dbname, bson.M{"aid": filter["aid"]}, bson.M{"aid_list": tempList})
+	head = append(head, tail)
+	return client.Update(dbname, bson.M{"aid": filter["aid"]}, bson.M{"aid_list": head})
+}
+
+// DeleteAlbumByUid totally delete a whole album
+func (a *AlbumModelImpl) DeleteAlbumByUid(uid int32) error {
+	client := database.NewDatabaseClient()
+	err := client.Connect()
+	if err != nil {
+		return err
+	}
+	defer client.Disconnect()
+
+	filter := database.Map{"uid": uid}
+	err = client.Remove(dbname, filter)
+	if err != nil {
+		return err
+	}
+	return nil
 }

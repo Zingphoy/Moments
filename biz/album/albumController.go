@@ -26,7 +26,7 @@ func GetAlbumDetail(c *gin.Context) {
 		return
 	}
 
-	handler := NewAlbumHandler()
+	handler := NewAlbumService()
 	handler.Data.Uid = uid
 	err = handler.DetailAlbum(c)
 	if err != nil {

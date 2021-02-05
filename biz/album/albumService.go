@@ -1,8 +1,8 @@
 package album
 
 import (
+	"Moments/pkg/hint"
 	"Moments/pkg/log"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,14 +12,14 @@ type AlbumHandler struct {
 	Impl AlbumModel
 }
 
-func NewAlbumHandler() *AlbumHandler {
+func NewAlbumService() *AlbumHandler {
 	return &AlbumHandler{
 		Data: &Album{},
 		Impl: &AlbumModelImpl{},
 	}
 }
 
-func (handler *AlbumHandler) AddAlbum(c *gin.Context) error {
+func (handler *AlbumHandler) CreateAlbum(c *gin.Context) error {
 	err := handler.Impl.CreateAlbumByUid(handler.Data.Uid)
 	return err
 }
@@ -28,30 +28,28 @@ func (handler *AlbumHandler) AddAlbum(c *gin.Context) error {
 func (handler *AlbumHandler) AppendAlbum(c *gin.Context) error {
 	uid := handler.Data.Uid
 	aid := handler.Data.AidList[0]
-	err := handler.Impl.AppendAlbumByUidAid(uid, aid)
-	if err != nil {
-		if strings.Contains(err.Error(), "no documents in result") {
-			err = handler.Impl.CreateAlbumByUid(uid)
-			if err != nil {
-				log.Error(c, "add album failed,", err.Error())
-				return err
-			}
-			err = handler.Impl.AppendAlbumByUidAid(uid, aid)
-			if err != nil {
-				log.Error(c, "add album failed,", err.Error())
-				return err
-			}
-		} else {
+	_, err := handler.Impl.GetAlbumDetailByUid(uid)
+
+	// if album is empty, create one and then append aid
+	if err != nil && err.(hint.CustomError).Code == hint.ALBUM_EMPTY {
+		err = handler.Impl.CreateAlbumByUid(uid)
+		if err != nil {
 			log.Error(c, "add album failed,", err.Error())
+			return err
+		}
+		err = handler.Impl.AppendAlbumByUidAid(uid, aid)
+		if err != nil {
+			log.Error(c, "add album failed,", err.Error())
+			return err
 		}
 	}
 	return err
 }
 
-// DeleteAlbum delete an article from album
-func (handler *AlbumHandler) DeleteAlbum(c *gin.Context) error {
+// DeleteArticleInAlbum delete an article from album
+func (handler *AlbumHandler) DeleteArticleInAlbum(c *gin.Context) error {
 	aid := handler.Data.AidList[0]
-	err := handler.Impl.RemoveAlbumByUidAid(handler.Data.Uid, aid)
+	err := handler.Impl.RemoveArticleInAlbumByUidAid(handler.Data.Uid, aid)
 	return err
 }
 
