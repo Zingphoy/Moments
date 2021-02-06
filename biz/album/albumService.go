@@ -12,32 +12,32 @@ type AlbumHandler struct {
 	Impl AlbumModel
 }
 
-func NewAlbumService() *AlbumHandler {
+func NewAlbumService(data *Album, impl *AlbumModelImpl) *AlbumHandler {
 	return &AlbumHandler{
-		Data: &Album{},
-		Impl: &AlbumModelImpl{},
+		Data: data,
+		Impl: impl,
 	}
 }
 
-func (handler *AlbumHandler) CreateAlbum(c *gin.Context) error {
-	err := handler.Impl.CreateAlbumByUid(handler.Data.Uid)
+func (srv *AlbumHandler) CreateAlbum(c *gin.Context) error {
+	err := srv.Impl.CreateAlbumByUid(srv.Data.Uid)
 	return err
 }
 
 // AppendAlbum append to the article_id (aid) into data row
-func (handler *AlbumHandler) AppendAlbum(c *gin.Context) error {
-	uid := handler.Data.Uid
-	aid := handler.Data.AidList[0]
-	_, err := handler.Impl.GetAlbumDetailByUid(uid)
+func (srv *AlbumHandler) AppendAlbum(c *gin.Context) error {
+	uid := srv.Data.Uid
+	aid := srv.Data.AidList[0]
+	_, err := srv.Impl.GetAlbumDetailByUid(uid)
 
 	// if album is empty, create one and then append aid
 	if err != nil && err.(hint.CustomError).Code == hint.ALBUM_EMPTY {
-		err = handler.Impl.CreateAlbumByUid(uid)
+		err = srv.Impl.CreateAlbumByUid(uid)
 		if err != nil {
 			log.Error(c, "add album failed,", err.Error())
 			return err
 		}
-		err = handler.Impl.AppendAlbumByUidAid(uid, aid)
+		err = srv.Impl.AppendAlbumByUidAid(uid, aid)
 		if err != nil {
 			log.Error(c, "add album failed,", err.Error())
 			return err
@@ -47,18 +47,18 @@ func (handler *AlbumHandler) AppendAlbum(c *gin.Context) error {
 }
 
 // DeleteArticleInAlbum delete an article from album
-func (handler *AlbumHandler) DeleteArticleInAlbum(c *gin.Context) error {
-	aid := handler.Data.AidList[0]
-	err := handler.Impl.RemoveArticleInAlbumByUidAid(handler.Data.Uid, aid)
+func (srv *AlbumHandler) DeleteArticleInAlbum(c *gin.Context) error {
+	aid := srv.Data.AidList[0]
+	err := srv.Impl.RemoveArticleInAlbumByUidAid(srv.Data.Uid, aid)
 	return err
 }
 
-func (handler *AlbumHandler) DetailAlbum(c *gin.Context) error {
-	album, err := handler.Impl.GetAlbumDetailByUid(handler.Data.Uid)
+func (srv *AlbumHandler) DetailAlbum(c *gin.Context) error {
+	album, err := srv.Impl.GetAlbumDetailByUid(srv.Data.Uid)
 	if err != nil {
 		log.Error(c, "get album detail error")
 		return err
 	}
-	handler.Data.AidList = album.AidList
+	srv.Data.AidList = album.AidList
 	return err
 }

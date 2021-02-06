@@ -26,13 +26,13 @@ func GetAlbumDetail(c *gin.Context) {
 		return
 	}
 
-	handler := NewAlbumService()
-	handler.Data.Uid = uid
-	err = handler.DetailAlbum(c)
+	srv := NewAlbumService(&Album{}, &AlbumModelImpl{})
+	srv.Data.Uid = uid
+	err = srv.DetailAlbum(c)
 	if err != nil {
 		webapp.MakeJsonRes(http.StatusOK, hint.INTERNAL_ERROR, err.Error())
 		return
 	}
 
-	webapp.MakeJsonRes(http.StatusOK, hint.SUCCESS, handler.Data)
+	webapp.MakeJsonRes(http.StatusOK, hint.SUCCESS, srv.Data)
 }

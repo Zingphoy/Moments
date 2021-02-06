@@ -54,7 +54,7 @@ func (s *AlbumServiceSuite) TearDownTest() {
 }
 
 func (s *AlbumServiceSuite) TestServiceAppendAlbum() {
-	srv := NewAlbumService()
+	srv := NewAlbumService(&Album{}, &AlbumModelImpl{})
 	srv.Data.Uid = s.TestData.Uid
 	srv.Data.AidList = []int64{888881000000001}
 	err := srv.AppendAlbum(nil)
@@ -62,14 +62,14 @@ func (s *AlbumServiceSuite) TestServiceAppendAlbum() {
 }
 
 func (s *AlbumServiceSuite) TestServiceCreateAlbum() {
-	srv := NewAlbumService()
+	srv := NewAlbumService(&Album{}, &AlbumModelImpl{})
 	srv.Data.Uid = 80808
 	err := srv.CreateAlbum(nil)
 	assert.Nil(s.T(), err)
 }
 
 func (s *AlbumServiceSuite) TestServiceDeleteArticleInAlbum() {
-	srv := NewAlbumService()
+	srv := NewAlbumService(&Album{}, &AlbumModelImpl{})
 	srv.Data.Uid = 80808
 	srv.Data.AidList = []int64{888881000000001}
 	err := srv.DeleteArticleInAlbum(nil)
@@ -77,7 +77,7 @@ func (s *AlbumServiceSuite) TestServiceDeleteArticleInAlbum() {
 }
 
 func (s *AlbumServiceSuite) TestServiceDetailAlbum() {
-	srv := NewAlbumService()
+	srv := NewAlbumService(&Album{}, &AlbumModelImpl{})
 	srv.Data.Uid = 88888
 	err := srv.DetailAlbum(nil)
 	assert.Nil(s.T(), err)
