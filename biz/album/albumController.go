@@ -2,7 +2,6 @@ package album
 
 import (
 	"Moments/pkg/app"
-	"Moments/pkg/hint"
 	"Moments/pkg/utils"
 	"net/http"
 
@@ -22,7 +21,7 @@ func GetAlbumDetail(c *gin.Context) {
 	webapp := app.GinCtx{C: c}
 	uid, err := utils.Str(c.DefaultQuery("uid", "0")).Int32()
 	if err != nil {
-		webapp.MakeJsonRes(http.StatusOK, hint.INTERNAL_ERROR, err.Error())
+		webapp.MakeFailedJsonRes(http.StatusOK, err)
 		return
 	}
 
@@ -30,9 +29,9 @@ func GetAlbumDetail(c *gin.Context) {
 	srv.Data.Uid = uid
 	err = srv.DetailAlbum(c)
 	if err != nil {
-		webapp.MakeJsonRes(http.StatusOK, hint.INTERNAL_ERROR, err.Error())
+		webapp.MakeFailedJsonRes(http.StatusOK, err)
 		return
 	}
 
-	webapp.MakeJsonRes(http.StatusOK, hint.SUCCESS, srv.Data)
+	webapp.MakeSuccessJsonRes(http.StatusOK, srv.Data)
 }

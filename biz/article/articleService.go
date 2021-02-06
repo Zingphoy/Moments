@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 )
 
 /*
@@ -28,7 +27,7 @@ func NewArticleService(data *Article, impl *ArticleModelImpl) *ArticleService {
 func (srv *ArticleService) DetailArticle(c *gin.Context) error {
 	detail, err := srv.Impl.GetArticleDetailByAid(srv.Data.Aid)
 	if err != nil {
-		log.Warn(c, "get article detail by aid failed, aid:", srv.Data.Aid)
+		log.Info(c, "get article detail by aid failed, aid=", srv.Data.Aid)
 		return err
 	}
 	srv.Data.Aid = detail.Aid
@@ -46,14 +45,15 @@ func (srv *ArticleService) AddArticle(c *gin.Context) error {
 	if err != nil {
 		return err
 	}
-	log.Info(c, "generated aid:", aid)
+	log.Info(c, "generated aid=", aid)
 	srv.Data.Aid = aid
 	err = srv.Impl.AddArticle(srv.Data)
 	if err != nil {
-		return errors.Wrap(err, "add article failed")
+		log.Info(c, fmt.Sprintf("add article failed, uid=%d", srv.Data.Uid))
+		return err
 	}
 
-	albumSrv := album.NewAlbumService()
+	albumSrv := album.NewAlbumService(&album.Album{}, &album.AlbumModelImpl{})
 	albumSrv.Data.Uid = srv.Data.Uid
 	albumSrv.Data.AidList = []int64{srv.Data.Aid}
 	err = albumSrv.AppendAlbum(c)
@@ -81,8 +81,7 @@ func (srv *ArticleService) AddArticle(c *gin.Context) error {
 func (srv *ArticleService) DeleteArticle(c *gin.Context) error {
 	err := srv.Delete(c, true)
 	if err != nil {
-		log.Warn(c, "delete article failed")
-		return errors.Wrap(err, "delete article failed")
+		return err
 	}
 	return nil
 }
@@ -92,24 +91,26 @@ func (srv *ArticleService) Delete(c *gin.Context, isSoftDelete bool) error {
 	uid, aid := srv.Data.Uid, srv.Data.Aid
 	if isSoftDelete {
 		err = srv.Impl.DeleteArticleSoftByUidAid(uid, aid)
+		if err != nil {
+			log.Error(c, fmt.Sprintf("delete article failed, uid=%d, aid:=%d", uid, aid))
+			return err
+		}
 	} else {
+		// won't work online
 		err = srv.Impl.DeleteArticleByUidAid(uid, aid)
 		if err != nil {
-			log.Error(c, "delete article failed")
+			log.Error(c, fmt.Sprintf("delete article failed, uid=%d, aid:=%d", uid, aid))
+			return err
 		}
 
-		albumHandler := album.NewAlbumService()
+		albumHandler := album.NewAlbumService(&album.Album{}, &album.AlbumModelImpl{})
 		albumHandler.Data.Uid = uid
 		albumHandler.Data.AidList = append(albumHandler.Data.AidList, aid)
 		err = albumHandler.DeleteArticleInAlbum(c)
 		if err != nil {
-			log.Error(c, "remove album failed")
+			log.Error(c, fmt.Sprintf("remove article from album failed, uid=%d, aid:=%d", uid, aid))
+			return err
 		}
-	}
-
-	if err != nil {
-		log.Error(c, fmt.Sprintf("delete article failed, aid=%d, error: %s", aid, err.Error()))
-		return err
 	}
 	return nil
 }

@@ -7,13 +7,12 @@ var CodeHint = map[int]string{
 	INVALID_PARAM:  "request params invalid",
 
 	// aid
-	AID_ALREADY_EXIST: "please ensure that sending article not too fast",
+	AID_ALREADY_EXIST: "please try after a minute",
 
 	// uid
 	USER_NOT_FOUND: "user does not exist",
 
 	// database
-	EMPTY_RESULT:              "query result is empty",
 	CONTEXT_DEADLINE_EXCEEDED: "database connection timeout",
 	OTHERS:                    "database unknown error",
 

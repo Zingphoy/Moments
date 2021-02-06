@@ -32,8 +32,8 @@ func GetArticleDetail(c *gin.Context) {
 	webapp := app.GinCtx{C: c}
 	aid, err := utils.Str(c.DefaultQuery("aid", "0")).Int64()
 	if err != nil {
-		log.Error(c, "invalid param aid,", err.Error())
-		webapp.MakeJsonRes(http.StatusOK, hint.INVALID_PARAM, err)
+		log.Info(c, "invalid param aid,", err.Error())
+		webapp.MakeFailedJsonRes(http.StatusOK, err)
 		return
 	}
 
@@ -41,11 +41,10 @@ func GetArticleDetail(c *gin.Context) {
 	srv.Data.Aid = aid
 	err = srv.DetailArticle(c)
 	if err != nil {
-		log.Error(c, "database error:", err.Error())
-		webapp.MakeJsonRes(http.StatusInternalServerError, hint.SUCCESS, err)
+		webapp.MakeFailedJsonRes(0, err)
 		return
 	}
-	webapp.MakeJsonRes(http.StatusOK, hint.SUCCESS, srv.Data)
+	webapp.MakeSuccessJsonRes(http.StatusOK, srv.Data)
 }
 
 // 发布表入库相关信息，接着相册表完成入库，并将一个扩散朋友圈的消息添加到消息队列
@@ -55,30 +54,29 @@ func SendArticle(c *gin.Context) {
 	articleData := Article{}
 	err := c.BindJSON(&articleData)
 	if err != nil {
-		log.Error(c, "data parse json error:", err.Error())
-		webapp.MakeJsonRes(http.StatusInternalServerError, hint.INTERNAL_ERROR, err.Error())
+		webapp.MakeFailedJsonRes(http.StatusOK, hint.CustomError{
+			Code: hint.INVALID_PARAM,
+			Err:  err,
+		})
 		return
 	}
 
 	srv := ArticleService{Data: &articleData, Impl: &ArticleModelImpl{}}
 	err = srv.AddArticle(c)
 	if err != nil {
-		log.Error(c, "error:", err.Error())
-		webapp.MakeJsonRes(http.StatusOK, hint.INTERNAL_ERROR, err.Error())
+		webapp.MakeFailedJsonRes(http.StatusOK, err)
 		return
 	}
 
-	albumHander := album.NewAlbumService()
-	albumHander.Data.Uid = srv.Data.Uid
-	albumHander.Data.AidList = []int64{srv.Data.Aid}
-	err = albumHander.AppendAlbum(c)
+	albumSrv := album.NewAlbumService(&album.Album{}, &album.AlbumModelImpl{})
+	albumSrv.Data.Uid = srv.Data.Uid
+	albumSrv.Data.AidList = []int64{srv.Data.Aid}
+	err = albumSrv.AppendAlbum(c)
 	if err != nil {
-		log.Error(c, "error:", err.Error())
-		webapp.MakeJsonRes(http.StatusOK, hint.INTERNAL_ERROR, err.Error())
+		webapp.MakeFailedJsonRes(http.StatusOK, err.Error())
 		return
 	}
-
-	webapp.MakeJsonRes(http.StatusOK, hint.SUCCESS, nil)
+	webapp.MakeSuccessJsonRes(http.StatusOK, nil)
 }
 
 // DeleteArticle softly delete
@@ -87,20 +85,20 @@ func DeleteArticle(c *gin.Context) {
 	articleData := Article{}
 	err := c.BindJSON(&articleData)
 	if err != nil {
-		log.Error(c, "data parse json error:", err.Error())
-		webapp.MakeJsonRes(http.StatusInternalServerError, hint.INTERNAL_ERROR, err.Error())
+		webapp.MakeFailedJsonRes(http.StatusOK, hint.CustomError{
+			Code: hint.INVALID_PARAM,
+			Err:  err,
+		})
 		return
 	}
 
 	srv := ArticleService{Data: &articleData, Impl: &ArticleModelImpl{}}
 	err = srv.DeleteArticle(c)
 	if err != nil {
-		log.Error(c, "model delete error")
-		webapp.MakeJsonRes(http.StatusInternalServerError, hint.INTERNAL_ERROR, err.Error())
+		webapp.MakeFailedJsonRes(http.StatusOK, err)
 		return
 	}
-
-	webapp.MakeJsonRes(http.StatusOK, hint.SUCCESS, nil)
+	webapp.MakeSuccessJsonRes(http.StatusOK, nil)
 }
 
 func CommentArticle(c *gin.Context) {

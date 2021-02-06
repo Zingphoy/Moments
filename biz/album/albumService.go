@@ -3,6 +3,7 @@ package album
 import (
 	"Moments/pkg/hint"
 	"Moments/pkg/log"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -34,12 +35,12 @@ func (srv *AlbumHandler) AppendAlbum(c *gin.Context) error {
 	if err != nil && err.(hint.CustomError).Code == hint.ALBUM_EMPTY {
 		err = srv.Impl.CreateAlbumByUid(uid)
 		if err != nil {
-			log.Error(c, "add album failed,", err.Error())
+			log.Error(c, fmt.Sprintf("create new album failed, uid=%d", srv.Data.Uid))
 			return err
 		}
 		err = srv.Impl.AppendAlbumByUidAid(uid, aid)
 		if err != nil {
-			log.Error(c, "add album failed,", err.Error())
+			log.Error(c, fmt.Sprintf("append article into album failed, uid=%d", srv.Data.Uid))
 			return err
 		}
 	}
@@ -56,9 +57,8 @@ func (srv *AlbumHandler) DeleteArticleInAlbum(c *gin.Context) error {
 func (srv *AlbumHandler) DetailAlbum(c *gin.Context) error {
 	album, err := srv.Impl.GetAlbumDetailByUid(srv.Data.Uid)
 	if err != nil {
-		log.Error(c, "get album detail error")
 		return err
 	}
 	srv.Data.AidList = album.AidList
-	return err
+	return nil
 }

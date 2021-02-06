@@ -51,8 +51,8 @@ func (s *ArticleTestSuite) TearDownTest() {
 
 func (s *ArticleTestSuite) TestIsAidExist() {
 	ami := ArticleModelImpl{}
-	err := ami.IsArticleExist(s.TestData.Aid)
-	assert.Nil(s.T(), err)
+	err := ami.IsArticleNotExist(s.TestData.Aid)
+	assert.NotNil(s.T(), err)
 }
 
 func (s *ArticleTestSuite) TestGetDetail() {

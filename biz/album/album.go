@@ -3,7 +3,6 @@ package album
 import (
 	"Moments/biz/database"
 	"Moments/pkg/hint"
-	"Moments/pkg/log"
 
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -38,10 +37,8 @@ func (a *AlbumModelImpl) GetAlbumDetailByUid(uid int32) (*Album, error) {
 
 	album, err := client.Query(dbname, database.Map{"uid": uid})
 	if err != nil {
-		log.Error(nil, "get album detail failed,", err.Error())
 		return nil, err
 	}
-
 	if len(album) == 0 {
 		return nil, hint.CustomError{
 			Code: hint.ALBUM_EMPTY,
@@ -84,13 +81,7 @@ func (a *AlbumModelImpl) AppendAlbumByUidAid(uid int32, aid int64) error {
 		return err
 	}
 
-	// todo 追加aid有问题
-	log.Info(nil, "88 ", albums)
-	log.Info(nil, "89 ", albums[0])
-	tempList, ok := albums[0]["aid_list"].(bson.A)
-	if !ok {
-		log.Error(nil, "aid_list is not slice")
-	}
+	tempList := albums[0]["aid_list"].(bson.A)
 	tempList = append(tempList, aid)
 	return client.Update("album", filter, bson.M{"aid_list": tempList})
 }
@@ -110,11 +101,7 @@ func (a *AlbumModelImpl) RemoveArticleInAlbumByUidAid(uid int32, aid int64) erro
 		return err
 	}
 
-	tempList, ok := aids[0]["aid_list"].(bson.A)
-	if !ok {
-		log.Error(nil, "aid_list is not slice")
-	}
-
+	tempList := aids[0]["aid_list"].(bson.A)
 	var head bson.A
 	var tail bson.A
 	for i, v := range tempList {

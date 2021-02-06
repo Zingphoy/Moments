@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-// good essay: https://ethancai.github.io/2017/12/29/Error-Handling-in-Go/
+// make sure that each error code has its' corresponding message
 
 type CustomError struct {
 	Code int
@@ -49,14 +49,14 @@ const (
 	ALBUM_EMPTY = 1301
 
 	// database
+	DATABASE_ERROR            = 2000
 	CONNECT_FAILED            = 2001
 	CONTEXT_DEADLINE_EXCEEDED = 2002
-	EMPTY_RESULT              = 2003
-	QUERY_INTERNAL_ERROR      = 2004
-	UPDATE_INTERNAL_ERROR     = 2005
-	INSERT_INTERNAL_ERROR     = 2006
-	DELETE_INTERNAL_ERROR     = 2007
-	OTHERS                    = 2009
+	QUERY_INTERNAL_ERROR      = 2003
+	UPDATE_INTERNAL_ERROR     = 2004
+	INSERT_INTERNAL_ERROR     = 2005
+	DELETE_INTERNAL_ERROR     = 2006
+	OTHERS                    = 2007
 
 	// validate
 	JSON_PARSE_ERROR = 3001
