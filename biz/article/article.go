@@ -54,7 +54,6 @@ func (a *ArticleModelImpl) GenerateAid(uid int32) (int64, error) {
 			Err:  errors.New("aid already exists"),
 		}
 	}
-	log.Info(nil, "generated aid:", aid)
 	return aid, nil
 }
 

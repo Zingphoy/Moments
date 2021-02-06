@@ -18,49 +18,48 @@ type ArticleService struct {
 	Impl ArticleModel
 }
 
-// todo 改成依赖注入
-func NewArticleService() *ArticleService {
+func NewArticleService(data *Article, impl *ArticleModelImpl) *ArticleService {
 	return &ArticleService{
-		Data: &Article{},
-		Impl: &ArticleModelImpl{},
+		Data: data,
+		Impl: impl,
 	}
 }
 
-func (handler *ArticleService) DetailArticle(c *gin.Context) error {
-	detail, err := handler.Impl.GetArticleDetailByAid(handler.Data.Aid)
+func (srv *ArticleService) DetailArticle(c *gin.Context) error {
+	detail, err := srv.Impl.GetArticleDetailByAid(srv.Data.Aid)
 	if err != nil {
-		log.Warn(c, "get article detail by aid failed, aid:", handler.Data.Aid)
+		log.Warn(c, "get article detail by aid failed, aid:", srv.Data.Aid)
 		return err
 	}
-	handler.Data.Aid = detail.Aid
-	handler.Data.Uid = detail.Uid
-	handler.Data.Content = detail.Content
-	handler.Data.PostTime = detail.PostTime
-	handler.Data.PhotoList = detail.PhotoList
-	handler.Data.Privacy = detail.Privacy
-	handler.Data.IsDeleted = detail.IsDeleted
+	srv.Data.Aid = detail.Aid
+	srv.Data.Uid = detail.Uid
+	srv.Data.Content = detail.Content
+	srv.Data.PostTime = detail.PostTime
+	srv.Data.PhotoList = detail.PhotoList
+	srv.Data.Privacy = detail.Privacy
+	srv.Data.IsDeleted = detail.IsDeleted
 	return nil
 }
 
-func (handler *ArticleService) AddArticle(c *gin.Context) error {
-	aid, err := handler.Impl.GenerateAid(handler.Data.Uid)
+func (srv *ArticleService) AddArticle(c *gin.Context) error {
+	aid, err := srv.Impl.GenerateAid(srv.Data.Uid)
 	if err != nil {
 		return err
 	}
-	handler.Data.Aid = aid
-	err = handler.Impl.AddArticle(handler.Data)
+	log.Info(c, "generated aid:", aid)
+	srv.Data.Aid = aid
+	err = srv.Impl.AddArticle(srv.Data)
 	if err != nil {
 		return errors.Wrap(err, "add article failed")
 	}
 
-	//album := Album{
-	//	Uid:     a.Uid,
-	//	AidList: bson.A{a.Aid},
-	//}
-	//err = album.Append()
-	//if err != nil {
-	//	return err
-	//}
+	albumSrv := album.NewAlbumService()
+	albumSrv.Data.Uid = srv.Data.Uid
+	albumSrv.Data.AidList = []int64{srv.Data.Aid}
+	err = albumSrv.AppendAlbum(c)
+	if err != nil {
+		return err
+	}
 
 	// send a message to MQ, going to insert this article into users' friends' timeline
 	//msg := mq.Message{
@@ -79,8 +78,8 @@ func (handler *ArticleService) AddArticle(c *gin.Context) error {
 }
 
 // DeleteArticle delete an article by aid softly, a wrapper function of Delete
-func (handler *ArticleService) DeleteArticle(c *gin.Context) error {
-	err := handler.Delete(c, true)
+func (srv *ArticleService) DeleteArticle(c *gin.Context) error {
+	err := srv.Delete(c, true)
 	if err != nil {
 		log.Warn(c, "delete article failed")
 		return errors.Wrap(err, "delete article failed")
@@ -88,13 +87,13 @@ func (handler *ArticleService) DeleteArticle(c *gin.Context) error {
 	return nil
 }
 
-func (handler *ArticleService) Delete(c *gin.Context, isSoftDelete bool) error {
+func (srv *ArticleService) Delete(c *gin.Context, isSoftDelete bool) error {
 	var err error
-	uid, aid := handler.Data.Uid, handler.Data.Aid
+	uid, aid := srv.Data.Uid, srv.Data.Aid
 	if isSoftDelete {
-		err = handler.Impl.DeleteArticleSoftByUidAid(uid, aid)
+		err = srv.Impl.DeleteArticleSoftByUidAid(uid, aid)
 	} else {
-		err = handler.Impl.DeleteArticleByUidAid(uid, aid)
+		err = srv.Impl.DeleteArticleByUidAid(uid, aid)
 		if err != nil {
 			log.Error(c, "delete article failed")
 		}
@@ -115,10 +114,10 @@ func (handler *ArticleService) Delete(c *gin.Context, isSoftDelete bool) error {
 	return nil
 }
 
-func (handler *ArticleService) CommentArticle(c *gin.Context) error {
+func (srv *ArticleService) CommentArticle(c *gin.Context) error {
 	return nil
 }
 
-func (handler *ArticleService) LikeArticle(c *gin.Context) error {
+func (srv *ArticleService) LikeArticle(c *gin.Context) error {
 	return nil
 }

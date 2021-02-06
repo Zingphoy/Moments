@@ -66,7 +66,7 @@ func (s *ArticleServiceSuite) TearDownTest() {
 }
 
 func (s *ArticleServiceSuite) TestServiceAddArticle() {
-	srv := NewArticleService()
+	srv := NewArticleService(&Article{}, &ArticleModelImpl{})
 	srv.Data = &s.TestData
 	err := srv.AddArticle(nil)
 	assert.Nil(s.T(), err)
@@ -81,7 +81,7 @@ func (s *ArticleServiceSuite) TestServiceAddArticle() {
 }
 
 func (s *ArticleServiceSuite) TestServiceDeleteArticle() {
-	srv := NewArticleService()
+	srv := NewArticleService(&Article{}, &ArticleModelImpl{})
 	srv.Data = &s.TestData
 	srv.Data.Aid = s.GeneratedAid // 这里会使得TearDownTest中使用同一个aid，最后新增的文章会被直接删除
 	log.Info(nil, srv.Data)
@@ -90,7 +90,7 @@ func (s *ArticleServiceSuite) TestServiceDeleteArticle() {
 }
 
 func (s *ArticleServiceSuite) TestServiceDetailArticle() {
-	srv := NewArticleService()
+	srv := NewArticleService(&Article{}, &ArticleModelImpl{})
 	srv.Data = &s.TestData
 	err := srv.DetailArticle(nil)
 	assert.Nil(s.T(), err)

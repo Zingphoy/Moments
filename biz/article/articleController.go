@@ -37,15 +37,15 @@ func GetArticleDetail(c *gin.Context) {
 		return
 	}
 
-	handler := NewArticleService()
-	handler.Data.Aid = aid
-	err = handler.DetailArticle(c)
+	srv := NewArticleService(&Article{}, &ArticleModelImpl{})
+	srv.Data.Aid = aid
+	err = srv.DetailArticle(c)
 	if err != nil {
 		log.Error(c, "database error:", err.Error())
 		webapp.MakeJsonRes(http.StatusInternalServerError, hint.SUCCESS, err)
 		return
 	}
-	webapp.MakeJsonRes(http.StatusOK, hint.SUCCESS, handler.Data)
+	webapp.MakeJsonRes(http.StatusOK, hint.SUCCESS, srv.Data)
 }
 
 // 发布表入库相关信息，接着相册表完成入库，并将一个扩散朋友圈的消息添加到消息队列
@@ -60,8 +60,8 @@ func SendArticle(c *gin.Context) {
 		return
 	}
 
-	handler := ArticleService{Data: &articleData, Impl: &ArticleModelImpl{}}
-	err = handler.AddArticle(c)
+	srv := ArticleService{Data: &articleData, Impl: &ArticleModelImpl{}}
+	err = srv.AddArticle(c)
 	if err != nil {
 		log.Error(c, "error:", err.Error())
 		webapp.MakeJsonRes(http.StatusOK, hint.INTERNAL_ERROR, err.Error())
@@ -69,8 +69,8 @@ func SendArticle(c *gin.Context) {
 	}
 
 	albumHander := album.NewAlbumService()
-	albumHander.Data.Uid = handler.Data.Uid
-	albumHander.Data.AidList = []int64{handler.Data.Aid}
+	albumHander.Data.Uid = srv.Data.Uid
+	albumHander.Data.AidList = []int64{srv.Data.Aid}
 	err = albumHander.AppendAlbum(c)
 	if err != nil {
 		log.Error(c, "error:", err.Error())
@@ -92,8 +92,8 @@ func DeleteArticle(c *gin.Context) {
 		return
 	}
 
-	handler := ArticleService{Data: &articleData, Impl: &ArticleModelImpl{}}
-	err = handler.DeleteArticle(c)
+	srv := ArticleService{Data: &articleData, Impl: &ArticleModelImpl{}}
+	err = srv.DeleteArticle(c)
 	if err != nil {
 		log.Error(c, "model delete error")
 		webapp.MakeJsonRes(http.StatusInternalServerError, hint.INTERNAL_ERROR, err.Error())
