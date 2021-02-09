@@ -18,6 +18,7 @@ type AlbumModel interface {
 	CreateAlbumByUid(uid int32) error
 	AppendAlbumByUidAid(uid int32, aid int64) error
 	RemoveArticleInAlbumByUidAid(uid int32, aid int64) error
+	DeleteAlbumByUid(uid int32) error
 }
 
 type AlbumModelImpl struct {
@@ -48,7 +49,7 @@ func (a *AlbumModelImpl) GetAlbumDetailByUid(uid int32) (*Album, error) {
 
 	ret := Album{
 		Uid:     album[0]["uid"].(int32),
-		AidList: database.BsonToSliceInt64(album[0]["aid_list"].(bson.A)),
+		AidList: database.BsonToSliceInt64(album[0]["aid_list"]),
 	}
 	return &ret, err
 }
@@ -111,8 +112,8 @@ func (a *AlbumModelImpl) RemoveArticleInAlbumByUidAid(uid int32, aid int64) erro
 		}
 		head = append(head, v)
 	}
-	head = append(head, tail)
-	return client.Update(dbname, bson.M{"aid": filter["aid"]}, bson.M{"aid_list": head})
+	head = append(head, tail...)
+	return client.Update(dbname, filter, bson.M{"aid_list": head})
 }
 
 // DeleteAlbumByUid totally delete a whole album

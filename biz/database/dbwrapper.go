@@ -173,20 +173,28 @@ func BsonMToMap(data bson.M) Map {
 	return ret
 }
 
-func BsonAToSliceString(data bson.A) []string {
-	strSlice := make([]string, len(data))
-	for _, v := range data {
+func BsonAToSliceString(data interface{}) []string {
+	val, ok := data.(bson.A)
+	if !ok || val == nil {
+		return make([]string, 0, 0)
+	}
+	strSlice := make([]string, len(val))
+	for _, v := range val {
 		s := v.(string)
 		strSlice = append(strSlice, s)
 	}
 	return strSlice
 }
 
-func BsonToSliceInt64(data bson.A) []int64 {
-	strSlice := make([]int64, len(data))
-	for _, v := range data {
-		s := v.(int64)
-		strSlice = append(strSlice, s)
+func BsonToSliceInt64(data interface{}) []int64 {
+	val, ok := data.(bson.A)
+	if !ok || val == nil {
+		return make([]int64, 0, 0)
 	}
-	return strSlice
+	intSlice := make([]int64, len(val))
+	for _, v := range val {
+		s := v.(int64)
+		intSlice = append(intSlice, s)
+	}
+	return intSlice
 }

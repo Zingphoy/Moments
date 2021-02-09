@@ -57,7 +57,6 @@ func (s *ArticleServiceSuite) SetupTest() {
 }
 
 func (s *ArticleServiceSuite) TearDownTest() {
-	log.Info(nil, "testdata.aid: ", s.TestData.Aid)
 	ami := ArticleModelImpl{}
 	err := ami.DeleteArticleByUidAid(s.TestData.Uid, s.TestData.Aid)
 	if err != nil {

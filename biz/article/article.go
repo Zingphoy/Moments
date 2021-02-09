@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 // article data structure
@@ -109,7 +108,7 @@ func (a *ArticleModelImpl) GetArticleDetailByAid(aid int64) (*Article, error) {
 	article.Uid = row["uid"].(int32)
 	article.PostTime = row["post_time"].(int64)
 	article.Content = row["content"].(string)
-	article.PhotoList = database.BsonAToSliceString(row["photo_list"].(bson.A))
+	article.PhotoList = database.BsonAToSliceString(row["photo_list"])
 	article.Privacy = row["privacy"].(int32)
 	article.IsDeleted = 0
 	return &article, nil

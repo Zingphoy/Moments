@@ -45,7 +45,7 @@ func (srv *ArticleService) AddArticle(c *gin.Context) error {
 	if err != nil {
 		return err
 	}
-	log.Info(c, "generated aid=", aid)
+	log.Info(c, fmt.Sprintf("generated aid=%d", aid))
 	srv.Data.Aid = aid
 	err = srv.Impl.AddArticle(srv.Data)
 	if err != nil {
@@ -102,13 +102,23 @@ func (srv *ArticleService) Delete(c *gin.Context, isSoftDelete bool) error {
 			log.Error(c, fmt.Sprintf("delete article failed, uid=%d, aid:=%d", uid, aid))
 			return err
 		}
-
-		albumHandler := album.NewAlbumService(&album.Album{}, &album.AlbumModelImpl{})
-		albumHandler.Data.Uid = uid
-		albumHandler.Data.AidList = append(albumHandler.Data.AidList, aid)
-		err = albumHandler.DeleteArticleInAlbum(c)
+		albumSrv := album.NewAlbumService(&album.Album{}, &album.AlbumModelImpl{})
+		albumSrv.Data.Uid = uid
+		albumSrv.Data.AidList = append(albumSrv.Data.AidList, aid)
+		err = albumSrv.DeleteArticleInAlbum(c)
 		if err != nil {
 			log.Error(c, fmt.Sprintf("remove article from album failed, uid=%d, aid:=%d", uid, aid))
+			return err
+		}
+		if err = albumSrv.DetailAlbum(c); err == nil {
+			if len(albumSrv.Data.AidList) == 0 {
+				err = albumSrv.DeleteWholeAlum(c)
+				if err != nil {
+					log.Error(c, fmt.Sprintf("delete album failed, uid=%d", uid))
+					return err
+				}
+			}
+		} else {
 			return err
 		}
 	}
