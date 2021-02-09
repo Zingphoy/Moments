@@ -1,33 +1,49 @@
 package timeline
 
-//func RefreshTimeline(uid int32, latestAid int64, schema string) ([]*model.ArticleHandler, error) {
-//	var err error
-//	var aids []int64
-//	tl := model.NewTimelineObject(map[string]interface{}{"": 1})
-//
-//	switch schema {
-//	case "refresh":
-//		aids, err = tl.GetUserTimelineRefresh(latestAid)
-//	case "loadmore":
-//		aids, err = tl.GetUserTimelineLoadMore(latestAid)
-//	}
-//	if err != nil {
-//		log.Error("get timeline failed")
-//		return nil, err
-//	}
-//
-//	// todo 这里真的是返回一个timeline结构？看起来更像是需要返回article详细列表吧
-//	articleList := make([]*model.ArticleHandler, 0, 10)
-//	for _, aid := range aids {
-//		article := model.NewArticleObject(map[string]interface{}{"aid": aid})
-//		err = article.GetArticleDetail()
-//		if err != nil {
-//			log.Error("get article detail failed")
-//			return nil, err
-//		}
-//		articleList = append(articleList, &article)
-//	}
-//
-//	log.Info("get timeline success, aid list:", aids)
-//	return articleList, nil
-//}
+import (
+	"Moments/biz/article"
+	"Moments/pkg/log"
+	"fmt"
+
+	"github.com/gin-gonic/gin"
+)
+
+type TimelineService struct {
+	Data *Timeline
+	Impl TimelineModel
+}
+
+func NewTimelineService(data *Timeline, impl *TimelineModelImpl) *TimelineService {
+	return &TimelineService{
+		Data: data,
+		Impl: impl,
+	}
+}
+
+func (t *TimelineService) GetRefreshTimeline(c *gin.Context, uid int32, boundaryAid int64, schema string) ([]article.Article, error) {
+	var err error
+	var aids []int64
+	switch schema {
+	case "refresh":
+		aids, err = t.Impl.GetTimelineRefreshByUidAid(uid, boundaryAid)
+	case "loadmore":
+		aids, err = t.Impl.GetTimelineLoadMoreByUidAid(uid, boundaryAid)
+	}
+	if err != nil {
+		log.Error(c, fmt.Sprintf("refresh timeline failed, uid=%d", uid))
+		return nil, err
+	}
+
+	articleSrv := article.NewArticleService(&article.Article{}, &article.ArticleModelImpl{})
+	articleList := make([]article.Article, 0, 10)
+	for _, aid := range aids {
+		articleSrv.Data.Aid = aid
+		err = articleSrv.DetailArticle(c)
+		if err != nil {
+			log.Info(c, fmt.Sprintf("get article detail failed, aid=%d", aid))
+			continue
+		}
+		articleList = append(articleList, *articleSrv.Data)
+	}
+	return articleList, nil
+}
