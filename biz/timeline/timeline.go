@@ -6,7 +6,6 @@ package timeline
 */
 
 import (
-	"Moments/biz/article"
 	"Moments/biz/database"
 	"Moments/pkg/log"
 
@@ -44,30 +43,6 @@ type TimelineModelImpl struct {
 // params: uid int32
 func hasPermission() error {
 	return nil
-}
-
-// GetUserTimelineArticleDetail get details of all articles from timeline
-func (t *TimelineModelImpl) GetUserTimelineArticleDetail(uid int32) ([]*article.Article, error) {
-	client := database.NewDatabaseClient()
-	err := client.Connect()
-	if err != nil {
-		return nil, err
-	}
-	defer client.Disconnect()
-
-	data, err := client.Query(dbname, database.Map{"uid": uid})
-	if err != nil {
-		return nil, err
-	}
-	var ret = make([]*article.Article, len(data))
-	for _, aid := range data {
-		// todo
-		// 通过aid获取database
-		// 从database中获取文章信息
-		log.Info(nil, aid)
-		ret = append(ret, nil) // todo article要能拿到detail再塞进来
-	}
-	return ret, nil
 }
 
 // GetTimelineRefreshByUidAid when client refresh timeline, it will fetch 10 newest Article and check privacy,

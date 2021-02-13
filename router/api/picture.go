@@ -1,9 +1,9 @@
 package api
 
 import (
+	"Moments/biz/common"
 	"Moments/pkg/app"
 	"Moments/pkg/hint"
-	"Moments/service/common"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

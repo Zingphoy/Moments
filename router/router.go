@@ -1,8 +1,10 @@
 package router
 
 import (
+	"Moments/biz"
 	"Moments/biz/album"
 	"Moments/biz/article"
+	"Moments/biz/timeline"
 	"Moments/middleware"
 	"Moments/router/api"
 	"net/http"
@@ -15,16 +17,17 @@ func InitRouter() http.Handler {
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 	r.Use(middleware.TrackingId())
+	r.Use(middleware.ConfigureCors())
 
-	tools := r.Group("/tools")
+	common := r.Group("/tools")
 	{
-		tools.POST("/upload/pic", api.UploadPicture)
+		common.POST("/upload/pic", api.UploadPicture)
 	}
 
 	apiV1 := r.Group("/v1")
 	{
-		// moments refresh or load more
-		//apiV1.GET("/moments/timeline", v1.GetTimeline)
+		/********** Timeline module **********/
+		apiV1.POST("/moments/timeline", timeline.RefreshTimeline)
 
 		/********** Article module **********/
 		apiV1.GET("/moments/article/detail", article.GetArticleDetail)
@@ -38,8 +41,10 @@ func InitRouter() http.Handler {
 
 	}
 
-	//apiTest := r.Group("/test")
-	//apiTest.Use(middleware.AddTimeout())
+	apiTest := r.Group("/test")
+	{
+		apiTest.GET("/database", biz.GetDatabaseData)
+	}
 
 	return r
 }
