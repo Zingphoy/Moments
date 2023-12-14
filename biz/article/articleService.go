@@ -2,6 +2,7 @@ package article
 
 import (
 	"Moments/biz/album"
+	"Moments/biz/mq"
 	"Moments/pkg/log"
 	"fmt"
 
@@ -62,18 +63,18 @@ func (srv *ArticleService) AddArticle(c *gin.Context) error {
 	}
 
 	// send a message to MQ, going to insert this article into users' friends' timeline
-	//msg := mq.Message{
-	//	MsgType:  mq.EXPAND_TIMELINE_ADD,
-	//	Aid:      aid,
-	//	Uid:      a.Uid,
-	//	Desc:     "",
-	//	NeedSafe: true,
-	//}
-	//err = msg.ExpandTimeline()
-	//if err != nil {
-	//	log.Error("Expand article into friends' timeline failed,", err.Error())
-	//	return err
-	//}
+	msg := mq.Message{
+		MsgType:  mq.EXPAND_TIMELINE_ADD,
+		Aid:      aid,
+		Uid:      srv.Data.Uid,
+		Desc:     "",
+		NeedSafe: true,
+	}
+	err = msg.ExpandTimeline()
+	if err != nil {
+		log.Error(c, fmt.Sprintf("Expand article into friends' timeline failed, uid=%d, aid=%d", aid, srv.Data.Uid))
+		return err
+	}
 	return nil
 }
 

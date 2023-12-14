@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Moments/biz/mq"
 	"Moments/pkg/log"
 	"Moments/router"
 	"net/http"
@@ -9,21 +10,17 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func init() {
-	log.InitLogger(false)
-	//model.InitDatabase()()
-}
-
 var (
 	g    errgroup.Group
-	port = ":6666"
+	port = ":9999"
 )
 
-func startExpander() {
-
-}
-
 func main() {
+	log.InitLogger(false)
+	//mq.InitMQ()
+	//mq.InitExpander()
+	defer mq.StopMQ()
+
 	server := &http.Server{
 		Addr:         port,
 		Handler:      router.InitRouter(),
@@ -34,12 +31,12 @@ func main() {
 	g.Go(func() error {
 		err := server.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
-			log.Fatal(err)
+			log.Fatal(nil, err)
 		}
 		return err
 	})
 
 	if err := g.Wait(); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 }

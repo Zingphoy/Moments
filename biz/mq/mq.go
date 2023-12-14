@@ -39,16 +39,14 @@ func InitMQ() {
 		producer.WithRetry(3),
 	)
 	if err != nil {
-		log.Fatal(err)
-		return
+		panic(err)
 	}
 
 	err = p.Start()
 	if err != nil {
-		log.Fatal(err)
-		return
+		panic(err)
 	}
-	log.Info("MQ producer initialize success")
+	log.Info(nil, "MQ producer initialize success")
 
 	c, err = mq.NewPushConsumer(
 		consumer.WithGroupName(GROUP_NAME),
@@ -60,22 +58,22 @@ func InitMQ() {
 		consumer.WithConsumeFromWhere(consumer.ConsumeFromLastOffset),
 	)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 		return
 	}
-	log.Info("MQ consumer initialize success")
+	log.Info(nil, "MQ consumer initialize success")
 }
 
 // StopMq stop MQ (unnecessary)
 func StopMQ() {
 	if p != nil {
 		if err := p.Shutdown(); err != nil {
-			log.Error(err.Error())
+			log.Error(nil, err.Error())
 		}
 	}
 	if c != nil {
 		if err := c.Shutdown(); err != nil {
-			log.Error(err.Error())
+			log.Error(nil, err.Error())
 		}
 	}
 }
@@ -86,9 +84,9 @@ func SendMessage(topic string, body []byte) (err error) {
 	for i := 0; i < 2; i++ {
 		res, err = p.SendMessageInTransaction(context.Background(), primitive.NewMessage(topic, body))
 		if err != nil {
-			log.Error(fmt.Sprintf("send mq message error for %d try: %s", i, err.Error()))
+			log.Warn(nil, fmt.Sprintf("send mq message error for %d try: %s", i, err.Error()))
 		} else {
-			log.Info("send mq message success: result=", res.String())
+			log.Info(nil, "send mq message success: result=", res.String())
 			break
 		}
 	}
@@ -99,11 +97,11 @@ func SendMessage(topic string, body []byte) (err error) {
 func RunMessageConsumer(topic string, callback consumerFunc) (err error) {
 	err = c.Subscribe(topic, consumer.MessageSelector{}, callback)
 	if err != nil {
-		log.Error(err.Error())
+		log.Error(nil, err.Error())
 	}
 	err = c.Start()
 	if err != nil {
-		log.Error(err.Error())
+		log.Error(nil, err.Error())
 	}
 	return
 }

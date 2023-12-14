@@ -4,8 +4,8 @@ go 1.13
 
 require (
 	github.com/apache/rocketmq-client-go/v2 v2.1.0-rc5
+	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.6.3
-	github.com/golang/mock v1.3.1
 	github.com/google/uuid v1.1.5
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect

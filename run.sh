@@ -1,0 +1,1 @@
+/usr/local/rocketmq/run.sh

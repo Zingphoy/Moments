@@ -8,6 +8,7 @@ https://rocketmq.apache.org/docs/transaction-example/
 
 import (
 	"Moments/biz/friend"
+	"Moments/biz/timeline"
 	"Moments/pkg/log"
 	"context"
 	"encoding/json"
@@ -23,7 +24,6 @@ import (
  It's a transaction to expand data to ensure the correctness of data.
 */
 
-// go协程来消费消息，外围管理这个协程的状态即可，
 // InitExpander initialize the manager which will take care of go routine that consumes messages.
 func InitExpander() {
 	initManager()
@@ -48,7 +48,7 @@ func initManager() {
 func Expand(c chan int) {
 	err := RunMessageConsumer(TOPIC, callback)
 	if err != nil {
-		log.Error("consume message failed,", err.Error())
+		log.Error(nil, fmt.Sprintf("consume message failed %v", err))
 		c <- 1
 	}
 }
@@ -59,33 +59,35 @@ func callback(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.Cons
 		m := Message{}
 		err := json.Unmarshal(msg.Message.Body, &m)
 		if err != nil {
-			log.Error("message deserialize failed,", err.Error())
+			log.Error(nil, "message deserialize failed,", err.Error())
 			return consumer.ConsumeSuccess, err
 		}
 
 		aid, uid := m.Aid, m.Uid
 		if aid <= 0 || uid <= 0 {
-			log.Error(fmt.Sprintf("aid: %d, uid: %d", aid, uid))
+			log.Error(nil, fmt.Sprintf("aid=%d, uid=%d", aid, uid))
 			return consumer.ConsumeSuccess, errors.New("aid or uid is not valided")
 		}
 
 		// todo 获取好友列表，然后遍历调用 AppendTimeline
-
-		friendList, err := friend.GetFriend(uid)
+		friendSrv := friend.FriendService{}
+		err = friendSrv.GetFriendList(nil)
 		if err != nil {
-			log.Error("get frined list failed,", err.Error())
+			log.Error(nil, "get frined list failed,", err.Error())
 			return consumer.ConsumeRetryLater, err
 		}
-		for _, fuid := range friendList {
+		for _, fuid := range friendSrv.Data.FriendList {
+			tlSrv := timeline.NewTimelineService(&timeline.Timeline{}, &timeline.TimelineModelImpl{})
 			switch m.MsgType {
-			case 1:
-				log.Info(fuid)
-				//err = model.AppendTimeline(fuid, aid)
-			case 2:
+			case EXPAND_TIMELINE_ADD:
+				err = tlSrv.AppendArticleIntoTimeline(nil, fuid, aid)
+				log.Info(nil, aid, fuid)
+			case EXPAND_TIMELINE_DELETE:
+				log.Info(nil, fuid)
 				//err = model.RemoveTimeline(fuid, aid)
 			}
 			if err != nil {
-				log.Error("expand timeline failed ")
+				log.Error(nil, fmt.Sprintf("expand timeline failed, uid=%d ", uid))
 				return consumer.ConsumeRetryLater, err
 			}
 		}

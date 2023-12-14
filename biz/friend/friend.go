@@ -1,8 +1,10 @@
 package friend
 
 import (
-	"Moments/model"
+	"Moments/biz/database"
+	"Moments/pkg/hint"
 
+	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -13,32 +15,53 @@ type Friend struct {
 
 var collectionName = "friend"
 
-func GetFriend(uid int32) ([]int32, error) {
-	row, err := model.queryOne(collectionName, bson.M{"uid": uid})
+func (f *Friend) GetFriend(uid int32) (*Friend, error) {
+	client := database.NewDatabaseClient()
+	err := client.Connect()
 	if err != nil {
-		return make([]int32, 0, 0), err
+		return nil, err
 	}
-	return row["friend_list"].([]int32), nil
+	defer client.Disconnect()
+
+	row, err := client.Query(collectionName, bson.M{"uid": uid})
+	if err != nil {
+		return nil, err
+	}
+	friend := Friend{Uid: uid}
+	friend.FriendList = row[0]["friend_list"].([]int32)
+	// todo 可能是查不到这个user，或者user没有好友
+	if len(friend.FriendList) == 0 {
+		return nil, hint.CustomError{
+			Code: hint.USER_NOT_FOUND,
+			Err:  errors.New("empty friend list"),
+		}
+	}
+	return &friend, nil
 }
 
-func AddNewFriend(uid int32, fuid int32) error {
-	row, err := model.queryOne(collectionName, bson.M{"uid": uid})
+func (f *Friend) AddNewFriend(uid int32, fuid int32) error {
+	client := database.NewDatabaseClient()
+	err := client.Connect()
 	if err != nil {
 		return err
 	}
+	defer client.Disconnect()
 
-	friendList := row["friend_list"].([]int32)
+	row, err := client.Query(collectionName, bson.M{"uid": uid})
+	if err != nil {
+		return err
+	}
+	friendList := row[0]["friend_list"].([]int32)
 	friendList = append(friendList, fuid)
-	err = model.update(collectionName, bson.M{"uid": uid}, bson.M{"friend_list": friendList})
-	return err
+	return client.Update(collectionName, bson.M{"uid": uid}, bson.M{"friend_list": friendList})
 }
 
-func RemoveFriend() error {
+func (f *Friend) RemoveFriend() error {
 	// todo not implement
 	return nil
 }
 
-func BlockFriend() error {
+func (f *Friend) BlockFriend() error {
 	// todo not implement
 	return nil
 }

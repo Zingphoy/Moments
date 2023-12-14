@@ -17,7 +17,7 @@ import (
 func (m *Message) ExpandTimeline() error {
 	err := sendMsg(m)
 	if err != nil {
-		log.Error("send message to MQ failed,", err.Error())
+		log.Error(nil, "send message to MQ failed,", err.Error())
 	}
 	return err
 }
@@ -26,7 +26,7 @@ func (m *Message) ExpandTimeline() error {
 func sendMsg(m *Message) error {
 	msg, err := json.Marshal(&m)
 	if err != nil {
-		log.Error("serialize message failed,", err.Error())
+		log.Error(nil, "serialize message failed,", err.Error())
 		return err
 	}
 
@@ -56,11 +56,11 @@ func NewTransactionListener() *TransactionListener {
  localTrans 1:Commit 2:Rollback 3:Unknown
 */
 func (l *TransactionListener) ExecuteLocalTransaction(msg *primitive.Message) primitive.LocalTransactionState {
-	log.Info(fmt.Sprintf("begin local transaction, transactionID: %v\n", msg.TransactionId))
+	log.Info(nil, fmt.Sprintf("begin local transaction, transactionID: %v\n", msg.TransactionId))
 	var body Message
 	err := json.Unmarshal(msg.Body, &body)
 	if err != nil {
-		log.Error(err.Error())
+		log.Error(nil, err.Error())
 		l.localTrans.Store(msg.TransactionId, primitive.LocalTransactionState(2))
 		return primitive.RollbackMessageState
 	}
@@ -76,7 +76,7 @@ func (l *TransactionListener) ExecuteLocalTransaction(msg *primitive.Message) pr
 		break
 	}
 	if err != nil {
-		log.Error(err.Error())
+		log.Error(nil, err.Error())
 		l.localTrans.Store(msg.TransactionId, primitive.LocalTransactionState(2))
 		return primitive.RollbackMessageState
 	}
@@ -87,7 +87,7 @@ func (l *TransactionListener) ExecuteLocalTransaction(msg *primitive.Message) pr
 
 // to check the 'Prepared-State' transaction using strategy of TransactionListener
 func (l *TransactionListener) CheckLocalTransaction(msg *primitive.MessageExt) primitive.LocalTransactionState {
-	log.Info(fmt.Sprintf("checking local transaction, transactionID : %v\n", msg.TransactionId))
+	log.Info(nil, fmt.Sprintf("checking local transaction, transactionID : %v\n", msg.TransactionId))
 	v, existed := l.localTrans.Load(msg.TransactionId)
 	if !existed {
 		return primitive.CommitMessageState
@@ -97,16 +97,16 @@ func (l *TransactionListener) CheckLocalTransaction(msg *primitive.MessageExt) p
 	l.localTrans.Delete(msg.TransactionId)
 	switch state {
 	case 1:
-		log.Info(fmt.Sprintf("checkLocalTransaction COMMITE_MESSAGE: %v\n", msg))
+		log.Info(nil, fmt.Sprintf("checkLocalTransaction COMMITE_MESSAGE: %v\n", msg))
 		return primitive.CommitMessageState
 	case 2:
-		log.Info(fmt.Sprintf("checkLocalTransaction ROLLBACK_MESSAGE: %v\n", msg))
+		log.Info(nil, fmt.Sprintf("checkLocalTransaction ROLLBACK_MESSAGE: %v\n", msg))
 		return primitive.RollbackMessageState
 	case 3:
-		log.Info(fmt.Sprintf("checkLocalTransaction UNKNOWN_MESSAGE: %v\n", msg))
+		log.Info(nil, fmt.Sprintf("checkLocalTransaction UNKNOWN_MESSAGE: %v\n", msg))
 		return primitive.UnknowState
 	default:
-		log.Error(fmt.Sprintf("message state not expected, checkLocalTransaction: %v\n", msg))
+		log.Error(nil, fmt.Sprintf("message state not expected, checkLocalTransaction: %v\n", msg))
 		return primitive.RollbackMessageState
 	}
 }

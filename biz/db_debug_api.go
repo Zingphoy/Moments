@@ -16,7 +16,7 @@ func GetDatabaseData(c *gin.Context) {
 	defer client.Disconnect()
 
 	resp := make([]interface{}, 0)
-	dbname := []string{"article_0", "article_1", "article_2", "article_3", "album", "timeline"}
+	dbname := []string{"article_0", "article_1", "article_2", "article_3", "album", "timeline", "friend"}
 	for _, name := range dbname {
 		ret, err := client.Query(name, nil)
 		if err != nil {
